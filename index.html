@@ -110,12 +110,20 @@
       try {
         // facingMode: "user" -> old (selfie) kamera, davomat uchun shu kerak
         kameraStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user' },
+          video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } },
           audio: false
         });
 
         video.srcObject = kameraStream;
         video.style.display = 'block';
+        document.getElementById('camera-status').textContent = 'Video yuklanmoqda...';
+
+        // Video haqiqatda render bo'lishini kutamiz - aks holda rasm qora chiqadi
+        await new Promise((resolve) => {
+          video.onloadedmetadata = () => resolve();
+        });
+        await video.play();
+
         captureBtn.style.display = 'inline-block';
         cameraBtn.style.display = 'none';
         document.getElementById('camera-status').textContent = 'Kamera ochildi ✅ — yuzingizni ko\'rsating';
@@ -129,6 +137,12 @@
       const video = document.getElementById('video');
       const canvas = document.getElementById('canvas');
       const photo = document.getElementById('photo');
+
+      // Agar video hali tayyor bo'lmasa (o'lchami 0), xato beramiz, qora rasm o'rniga
+      if (!video.videoWidth || !video.videoHeight) {
+        document.getElementById('camera-status').textContent = 'Video hali tayyor emas, biroz kutib qaytadan bosing ❌';
+        return;
+      }
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
