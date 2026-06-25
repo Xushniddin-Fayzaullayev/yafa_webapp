@@ -1,0 +1,11 @@
+{
+  "name": "yafa-webapp",
+  "version": "1.0.0",
+  "description": "Yafa attendance bot - Telegram Mini App",
+  "scripts": {
+    "start": "http-server -p $PORT -c-1"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}
