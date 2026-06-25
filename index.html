@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yafa - Davomat</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js/dist/face-api.min.js"></script>
   <style>
     body {
       font-family: -apple-system, sans-serif;
@@ -35,19 +36,16 @@
   </button>
 
   <p id="camera-status" style="margin-top: 15px;"></p>
+  <p id="model-status" style="font-size: 13px; color: #999;">Model yuklanmoqda...</p>
 
-  <div style="margin-top: 15px;">
-    <video id="video" autoplay playsinline muted style="width: 280px; max-width: 90%; border-radius: 12px; display: none; transform: scaleX(-1);"></video>
+  <div id="face-circle" style="width: 260px; height: 260px; border-radius: 50%; overflow: hidden; border: 6px solid #ccc; margin: 15px auto; display: none; position: relative; transition: border-color 0.25s;">
+    <video id="video" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
   </div>
-
-  <button id="capture-btn" style="font-size: 18px; padding: 12px 24px; background: #34c759; color: white; border: none; border-radius: 8px; margin-top: 15px; display: none;">
-    📸 Rasmga olish
-  </button>
 
   <canvas id="canvas" style="display: none;"></canvas>
 
   <div style="margin-top: 15px;">
-    <img id="photo" style="width: 280px; max-width: 90%; border-radius: 12px; display: none;">
+    <img id="photo" style="width: 260px; height: 260px; object-fit: cover; border-radius: 50%; display: none;">
   </div>
 
   <script>
@@ -95,52 +93,130 @@
 
     document.getElementById('gps-btn').addEventListener('click', gpsOl);
 
+    // ===== Yuz aniqlash modelini yuklash =====
+    const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights';
+    let modelTayyor = false;
+
+    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL)
+      .then(() => {
+        modelTayyor = true;
+        document.getElementById('model-status').textContent = '';
+      })
+      .catch((err) => {
+        document.getElementById('model-status').textContent = 'Model yuklanmadi, oddiy rejimda davom etamiz';
+      });
+
     // Kamera ochish
     let kameraStream = null;
+    let aniqlashIntervalId = null;
+    let yaxshiHolatSoni = 0; // ketma-ket nechta tekshiruvda yuz to'g'ri joylashgan
 
     async function kameraOch() {
       const video = document.getElementById('video');
+      const faceCircle = document.getElementById('face-circle');
       const cameraBtn = document.getElementById('camera-btn');
-      const captureBtn = document.getElementById('capture-btn');
       const photo = document.getElementById('photo');
 
       document.getElementById('camera-status').textContent = 'Kamera ochilmoqda... (ruxsat oynasini kutyapmiz)';
       photo.style.display = 'none';
 
       try {
-        // facingMode: "user" -> old (selfie) kamera, davomat uchun shu kerak
         kameraStream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } },
           audio: false
         });
 
         video.srcObject = kameraStream;
-        video.style.display = 'block';
+        faceCircle.style.display = 'block';
         document.getElementById('camera-status').textContent = 'Video yuklanmoqda...';
 
-        // Video haqiqatda render bo'lishini kutamiz - aks holda rasm qora chiqadi
         await new Promise((resolve) => {
           video.onloadedmetadata = () => resolve();
         });
         await video.play();
 
-        captureBtn.style.display = 'inline-block';
         cameraBtn.style.display = 'none';
-        document.getElementById('camera-status').textContent = 'Kamera ochildi ✅ — yuzingizni ko\'rsating';
+        document.getElementById('camera-status').textContent = 'Yuzingizni doira ichiga, markazga joylashtiring';
+
+        yaxshiHolatSoni = 0;
+        aniqlashIntervalId = setInterval(yuzniTekshir, 250);
       } catch (error) {
         document.getElementById('camera-status').textContent = 'Kamera xatosi: ' + error.message + ' ❌';
       }
     }
 
-    // Rasmga olish
+    // Halqa rangini o'zgartirish
+    function halqaRangi(rang) {
+      document.getElementById('face-circle').style.borderColor = rang;
+    }
+
+    // Har 250ms da yuzni tekshirish va halqa rangini yangilash
+    async function yuzniTekshir() {
+      const video = document.getElementById('video');
+
+      if (!modelTayyor || !video.videoWidth) {
+        halqaRangi('#ccc'); // kulrang - hali tayyor emas
+        return;
+      }
+
+      const detection = await faceapi.detectSingleFace(
+        video,
+        new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
+      );
+
+      if (!detection) {
+        halqaRangi('#e74c3c'); // qizil - yuz topilmadi
+        yaxshiHolatSoni = 0;
+        document.getElementById('camera-status').textContent = 'Yuzingiz ko\'rinmayapti — kameraga qarang';
+        return;
+      }
+
+      const box = detection.box;
+      const videoW = video.videoWidth;
+      const videoH = video.videoHeight;
+
+      // Yuz markazi va o'lchami nisbatlarini hisoblash
+      const faceCenterX = box.x + box.width / 2;
+      const faceCenterY = box.y + box.height / 2;
+      const markazdanFarqX = Math.abs(faceCenterX - videoW / 2) / videoW;
+      const markazdanFarqY = Math.abs(faceCenterY - videoH / 2) / videoH;
+      const yuzNisbati = box.width / videoW; // yuz qanchalik katta/yaqin ko'rinadi
+
+      const markazda = markazdanFarqX < 0.18 && markazdanFarqY < 0.18;
+      const masofaTogri = yuzNisbati > 0.22 && yuzNisbati < 0.75;
+
+      if (markazda && masofaTogri) {
+        halqaRangi('#2ecc71'); // yashil - hammasi joyida
+        document.getElementById('camera-status').textContent = 'Ajoyib! Joyida turing...';
+        yaxshiHolatSoni++;
+
+        // 4 marta ketma-ket (taxminan 1 soniya) yashil bo'lsa - avtomatik suratga olamiz
+        if (yaxshiHolatSoni >= 4) {
+          clearInterval(aniqlashIntervalId);
+          rasmOl();
+        }
+      } else {
+        halqaRangi('#f1c40f'); // sariq - yuz topildi, lekin joylashish noto'g'ri
+        yaxshiHolatSoni = 0;
+        if (!masofaTogri && yuzNisbati <= 0.22) {
+          document.getElementById('camera-status').textContent = 'Biroz yaqinroq keling';
+        } else if (!masofaTogri) {
+          document.getElementById('camera-status').textContent = 'Biroz uzoqroq turing';
+        } else {
+          document.getElementById('camera-status').textContent = 'Yuzingizni markazga joylashtiring';
+        }
+      }
+    }
+
+    // Rasmga olish (avtomatik chaqiriladi, qo'lda tugma yo'q)
     function rasmOl() {
       const video = document.getElementById('video');
       const canvas = document.getElementById('canvas');
       const photo = document.getElementById('photo');
+      const faceCircle = document.getElementById('face-circle');
 
-      // Agar video hali tayyor bo'lmasa (o'lchami 0), xato beramiz, qora rasm o'rniga
       if (!video.videoWidth || !video.videoHeight) {
-        document.getElementById('camera-status').textContent = 'Video hali tayyor emas, biroz kutib qaytadan bosing ❌';
+        document.getElementById('camera-status').textContent = 'Video hali tayyor emas ❌';
         return;
       }
 
@@ -156,20 +232,19 @@
       const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
       photo.src = dataUrl;
       photo.style.display = 'block';
+      halqaRangi('#2ecc71');
 
       // Kamerani o'chirish (batareya/maxfiylik uchun)
       if (kameraStream) {
         kameraStream.getTracks().forEach(track => track.stop());
       }
-      video.style.display = 'none';
-      document.getElementById('capture-btn').style.display = 'none';
+      faceCircle.style.display = 'none';
       document.getElementById('camera-btn').style.display = 'inline-block';
       document.getElementById('camera-btn').textContent = '📷 Qaytadan olish';
       document.getElementById('camera-status').textContent = 'Rasmga olindi ✅';
     }
 
     document.getElementById('camera-btn').addEventListener('click', kameraOch);
-    document.getElementById('capture-btn').addEventListener('click', rasmOl);
   </script>
 </body>
 </html>
