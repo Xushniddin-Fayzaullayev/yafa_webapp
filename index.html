@@ -22,20 +22,44 @@
   <h2>Salom, Yafa!</h2>
   <p id="tg-status" style="font-size: 12px; color: #aaa;">Tekshirilmoqda...</p>
 
-  <p id="main-status" style="font-size: 19px; font-weight: bold; color: #222; margin-top: 30px;">
-    📍 Joylashuv tekshirilmoqda...
-  </p>
-  <p id="debug-info" style="font-size: 12px; color: #999;"></p>
-  <p id="model-status" style="font-size: 13px; color: #999;">Model yuklanmoqda...</p>
+  <!-- ID + Keldim/Ketdim formasi - faqat QR orqali kirilganda ko'rinadi -->
+  <div id="login-form" style="display: none; margin-top: 30px; max-width: 280px; margin-left: auto; margin-right: auto;">
+    <p style="font-weight: bold; color: #222;">Davomat ma'lumotlari</p>
 
-  <div id="face-circle" style="width: 260px; height: 260px; border-radius: 50%; overflow: hidden; border: 6px solid #ccc; margin: 15px auto; display: none; position: relative; transition: border-color 0.25s;">
-    <video id="video" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+    <label style="display: block; text-align: left; font-size: 14px; color: #444; margin-bottom: 4px;">Xodim ID raqami</label>
+    <input id="employee-id-input" type="text" inputmode="numeric" placeholder="Masalan: 123"
+      style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; margin-bottom: 14px;">
+
+    <label style="display: block; text-align: left; font-size: 14px; color: #444; margin-bottom: 4px;">Amal turi</label>
+    <select id="turi-select" style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; margin-bottom: 18px;">
+      <option value="keldi">✅ Keldim</option>
+      <option value="ketdi">🚪 Ketdim</option>
+    </select>
+
+    <p id="form-error" style="color: #e74c3c; font-size: 13px; min-height: 16px;"></p>
+
+    <button id="continue-btn" style="width: 100%; font-size: 17px; padding: 12px; background: #2481cc; color: white; border: none; border-radius: 8px;">
+      Davom etish
+    </button>
   </div>
 
-  <canvas id="canvas" style="display: none;"></canvas>
+  <!-- Asosiy oqim (GPS + kamera) - forma to'ldirilgandan keyin, yoki Telegram orqali avtomatik ko'rinadi -->
+  <div id="main-flow" style="display: none;">
+    <p id="main-status" style="font-size: 19px; font-weight: bold; color: #222; margin-top: 30px;">
+      📍 Joylashuv tekshirilmoqda...
+    </p>
+    <p id="debug-info" style="font-size: 12px; color: #999;"></p>
+    <p id="model-status" style="font-size: 13px; color: #999;">Model yuklanmoqda...</p>
 
-  <div style="margin-top: 15px;">
-    <img id="photo" style="width: 260px; height: 260px; object-fit: cover; border-radius: 50%; display: none; margin: 0 auto;">
+    <div id="face-circle" style="width: 260px; height: 260px; border-radius: 50%; overflow: hidden; border: 6px solid #ccc; margin: 15px auto; display: none; position: relative; transition: border-color 0.25s;">
+      <video id="video" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+    </div>
+
+    <canvas id="canvas" style="display: none;"></canvas>
+
+    <div style="margin-top: 15px;">
+      <img id="photo" style="width: 260px; height: 260px; object-fit: cover; border-radius: 50%; display: none; margin: 0 auto;">
+    </div>
   </div>
 
   <script>
@@ -49,11 +73,40 @@
       document.getElementById('tg-status').textContent = 'Browser orqali ochilgan (Telegram tashqarisida)';
     }
 
-    // ===== Ish joyi koordinatasi - URL orqali keladi, bo'lmasa test qiymati =====
+    // ===== Ish joyi koordinatasi - QR kod ichida (har korxona uchun alohida QR) =====
     const urlParams = new URLSearchParams(window.location.search);
     const targetLat = parseFloat(urlParams.get('lat')) || 42.114050;   // TEST qiymat
     const targetLng = parseFloat(urlParams.get('lng')) || 60.059947;   // TEST qiymat
     const radius = parseFloat(urlParams.get('radius')) || 200;          // metr, TEST qiymat
+
+    // ===== Xodim ID va amal turi - har doim QR sahifasida qo'lda kiritiladi =====
+    let employeeId = null;
+    let amalTuri = null;
+
+    function asosiyOqimniBoshla() {
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('main-flow').style.display = 'block';
+      boshla();
+    }
+
+    document.getElementById('continue-btn').addEventListener('click', () => {
+      const kiritilganId = document.getElementById('employee-id-input').value.trim();
+      const tanlanganTuri = document.getElementById('turi-select').value;
+      const xato = document.getElementById('form-error');
+
+      if (!kiritilganId) {
+        xato.textContent = 'Iltimos, ID raqamingizni kiriting';
+        return;
+      }
+
+      xato.textContent = '';
+      employeeId = kiritilganId;
+      amalTuri = tanlanganTuri;
+      asosiyOqimniBoshla();
+    });
+
+    // Sahifa ochilganda - har doim forma ko'rsatiladi (yagona yo'l: QR)
+    document.getElementById('login-form').style.display = 'block';
 
     // ===== Ikki koordinata orasidagi masofa (metr) - Haversine formula =====
     function masofaHisobla(lat1, lng1, lat2, lng2) {
@@ -237,8 +290,6 @@
       document.getElementById('main-status').textContent = 'Rasmga olindi ✅ (keyingi qadamda yuboriladi)';
     }
 
-    // Hammasi tayyor bo'lgandan keyin - avtomatik boshlanadi
-    boshla();
   </script>
 </body>
 </html>
