@@ -19,8 +19,9 @@
 </head>
 <body>
   <h2>Salom, Yafa!</h2>
-  <p>Bu test sahifa. Railway orqali ishlayapti.</p>
   <p id="status">Tekshirilmoqda...</p>
+  <p id="gps-status">GPS so'ralmoqda...</p>
+  <div id="gps-result" style="font-size: 14px; color: #333; margin-top: 20px;"></div>
 
   <script>
     // Telegram WebApp ishga tushirish
@@ -32,6 +33,38 @@
     } else {
       document.getElementById('status').textContent = 'Bu sahifa browser orqali ochilgan (Telegram tashqarisida)';
     }
+
+    // GPS koordinata olish
+    function gpsOl() {
+      if (!navigator.geolocation) {
+        document.getElementById('gps-status').textContent = 'Bu qurilma GPS qo\'llab-quvvatlamaydi ❌';
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const accuracy = position.coords.accuracy;
+          // isMocked faqat Android Chrome'da mavjud, boshqa qurilmalarda undefined bo'ladi
+          const isMocked = position.coords.hasOwnProperty('isMocked') ? position.coords.isMocked : 'mavjud emas (iOS/boshqa)';
+
+          document.getElementById('gps-status').textContent = 'GPS olindi ✅';
+          document.getElementById('gps-result').innerHTML = `
+            <p>Latitude: ${lat}</p>
+            <p>Longitude: ${lng}</p>
+            <p>Aniqlik: ${accuracy} metr</p>
+            <p>isMocked: ${isMocked}</p>
+          `;
+        },
+        function(error) {
+          document.getElementById('gps-status').textContent = 'GPS xatosi: ' + error.message + ' ❌';
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
+    gpsOl();
   </script>
 </body>
 </html>
