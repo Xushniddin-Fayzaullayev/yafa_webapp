@@ -20,8 +20,13 @@
 <body>
   <h2>Salom, Yafa!</h2>
   <p id="status">Tekshirilmoqda...</p>
-  <p id="gps-status">GPS so'ralmoqda...</p>
-  <div id="gps-result" style="font-size: 14px; color: #333; margin-top: 20px;"></div>
+
+  <button id="gps-btn" style="font-size: 18px; padding: 12px 24px; background: #2481cc; color: white; border: none; border-radius: 8px; margin-top: 20px;">
+    📍 GPS olish
+  </button>
+
+  <p id="gps-status" style="margin-top: 20px;"></p>
+  <div id="gps-result" style="font-size: 14px; color: #333; margin-top: 10px;"></div>
 
   <script>
     // Telegram WebApp ishga tushirish
@@ -34,12 +39,14 @@
       document.getElementById('status').textContent = 'Bu sahifa browser orqali ochilgan (Telegram tashqarisida)';
     }
 
-    // GPS koordinata olish
+    // GPS koordinata olish - faqat tugma bosilganda
     function gpsOl() {
       if (!navigator.geolocation) {
         document.getElementById('gps-status').textContent = 'Bu qurilma GPS qo\'llab-quvvatlamaydi ❌';
         return;
       }
+
+      document.getElementById('gps-status').textContent = 'GPS so\'ralmoqda... (ruxsat oynasini kutyapmiz)';
 
       navigator.geolocation.getCurrentPosition(
         function(position) {
@@ -60,11 +67,11 @@
         function(error) {
           document.getElementById('gps-status').textContent = 'GPS xatosi: ' + error.message + ' ❌';
         },
-        { enableHighAccuracy: true, timeout: 10000 }
+        { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
       );
     }
 
-    gpsOl();
+    document.getElementById('gps-btn').addEventListener('click', gpsOl);
   </script>
 </body>
 </html>
