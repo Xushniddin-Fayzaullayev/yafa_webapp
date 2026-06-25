@@ -28,6 +28,28 @@
   <p id="gps-status" style="margin-top: 20px;"></p>
   <div id="gps-result" style="font-size: 14px; color: #333; margin-top: 10px;"></div>
 
+  <hr style="margin: 30px auto; width: 80%; border: none; border-top: 1px solid #ddd;">
+
+  <button id="camera-btn" style="font-size: 18px; padding: 12px 24px; background: #2481cc; color: white; border: none; border-radius: 8px;">
+    📷 Kamera ochish
+  </button>
+
+  <p id="camera-status" style="margin-top: 15px;"></p>
+
+  <div style="margin-top: 15px;">
+    <video id="video" autoplay playsinline muted style="width: 280px; max-width: 90%; border-radius: 12px; display: none; transform: scaleX(-1);"></video>
+  </div>
+
+  <button id="capture-btn" style="font-size: 18px; padding: 12px 24px; background: #34c759; color: white; border: none; border-radius: 8px; margin-top: 15px; display: none;">
+    📸 Rasmga olish
+  </button>
+
+  <canvas id="canvas" style="display: none;"></canvas>
+
+  <div style="margin-top: 15px;">
+    <img id="photo" style="width: 280px; max-width: 90%; border-radius: 12px; display: none;">
+  </div>
+
   <script>
     // Telegram WebApp ishga tushirish
     const tg = window.Telegram?.WebApp;
@@ -72,6 +94,68 @@
     }
 
     document.getElementById('gps-btn').addEventListener('click', gpsOl);
+
+    // Kamera ochish
+    let kameraStream = null;
+
+    async function kameraOch() {
+      const video = document.getElementById('video');
+      const cameraBtn = document.getElementById('camera-btn');
+      const captureBtn = document.getElementById('capture-btn');
+      const photo = document.getElementById('photo');
+
+      document.getElementById('camera-status').textContent = 'Kamera ochilmoqda... (ruxsat oynasini kutyapmiz)';
+      photo.style.display = 'none';
+
+      try {
+        // facingMode: "user" -> old (selfie) kamera, davomat uchun shu kerak
+        kameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: false
+        });
+
+        video.srcObject = kameraStream;
+        video.style.display = 'block';
+        captureBtn.style.display = 'inline-block';
+        cameraBtn.style.display = 'none';
+        document.getElementById('camera-status').textContent = 'Kamera ochildi ✅ — yuzingizni ko\'rsating';
+      } catch (error) {
+        document.getElementById('camera-status').textContent = 'Kamera xatosi: ' + error.message + ' ❌';
+      }
+    }
+
+    // Rasmga olish
+    function rasmOl() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const photo = document.getElementById('photo');
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+
+      // Video selfie ko'rinishida teskari (mirror), lekin saqlanadigan rasm to'g'ri bo'lishi uchun qaytadan o'giramiz
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      photo.src = dataUrl;
+      photo.style.display = 'block';
+
+      // Kamerani o'chirish (batareya/maxfiylik uchun)
+      if (kameraStream) {
+        kameraStream.getTracks().forEach(track => track.stop());
+      }
+      video.style.display = 'none';
+      document.getElementById('capture-btn').style.display = 'none';
+      document.getElementById('camera-btn').style.display = 'inline-block';
+      document.getElementById('camera-btn').textContent = '📷 Qaytadan olish';
+      document.getElementById('camera-status').textContent = 'Rasmga olindi ✅';
+    }
+
+    document.getElementById('camera-btn').addEventListener('click', kameraOch);
+    document.getElementById('capture-btn').addEventListener('click', rasmOl);
   </script>
 </body>
 </html>
