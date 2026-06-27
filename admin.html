@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yafa — Boshqaruv paneli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1B2430;
+    --paper: #ECE7DC;
+    --paper-line: #D8CFBE;
+    --stamp-green: #2F6B4F;
+    --stamp-red: #9B2C2C;
+    --gold: #A9842C;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 28px 80px 48px;
+    position: relative;
+  }
+  .wrap::before {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--stamp-red);
+    opacity: 0.5;
+  }
+  h1 {
+    font-family: 'Spectral', serif;
+    font-weight: 600;
+    font-size: 30px;
+    margin: 0 0 2px;
+    letter-spacing: 0.5px;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin-bottom: 28px;
+  }
+  label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 6px;
+    margin-top: 18px;
+  }
+  input[type="text"], input[type="password"], input[type="tel"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1.5px solid var(--paper-line);
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    padding: 8px 2px;
+    color: var(--ink);
+  }
+  input:focus { outline: none; border-bottom-color: var(--ink); }
+  input[type="file"] { font-family: 'Inter', sans-serif; font-size: 14px; margin-top: 4px; }
+  .btn-gold {
+    background: var(--gold);
+    color: #fff;
+    border: none;
+    padding: 12px 22px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 22px;
+  }
+  .btn-gold:hover { opacity: 0.92; }
+  .btn-text {
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+  .err {
+    color: var(--stamp-red);
+    font-size: 13px;
+    margin-top: 14px;
+    min-height: 16px;
+  }
+  .msg-ok {
+    color: var(--stamp-green);
+    font-size: 13px;
+    margin-top: 14px;
+    min-height: 16px;
+  }
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 24px;
+  }
+  .company-name {
+    font-family: 'Spectral', serif;
+    font-size: 18px;
+  }
+  .tabs { display: flex; gap: 26px; margin-bottom: 26px; }
+  .tab {
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 12.5px;
+    padding-bottom: 8px;
+    cursor: pointer;
+    opacity: 0.5;
+    border-bottom: 2px solid transparent;
+  }
+  .tab.active { opacity: 1; border-bottom-color: var(--gold); }
+  .search-row { display: flex; gap: 10px; margin-bottom: 22px; }
+  .search-row input { flex: 1; }
+  .search-row button {
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    padding: 0 18px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .result-row {
+    display: grid;
+    grid-template-columns: 84px 1fr 100px 110px;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--paper-line);
+  }
+  .result-row .kod {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    opacity: 0.7;
+  }
+  .result-row .ism { font-family: 'Spectral', serif; font-size: 16px; }
+  .stamp {
+    display: inline-block;
+    border: 2.5px solid var(--c);
+    outline: 1px solid var(--c);
+    outline-offset: 3px;
+    color: var(--c);
+    border-radius: 50%;
+    padding: 5px 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
+    transform: rotate(-7deg);
+    font-weight: 600;
+  }
+  .stamp.faol { --c: var(--stamp-green); }
+  .stamp.nofaol { --c: var(--stamp-red); }
+  .empty-note {
+    font-family: 'Spectral', serif;
+    font-style: italic;
+    opacity: 0.6;
+    padding: 20px 0;
+  }
+  section { display: none; }
+  section.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- LOGIN EKRANI -->
+  <div id="login-screen">
+    <h1>Yafa</h1>
+    <div class="eyebrow">Boshqaruv paneli</div>
+
+    <label>Login</label>
+    <input type="text" id="login-username">
+
+    <label>Parol</label>
+    <input type="password" id="login-password">
+
+    <button class="btn-gold" onclick="login()">Kirish</button>
+    <div class="err" id="login-err"></div>
+  </div>
+
+  <!-- ASOSIY PANEL -->
+  <div id="panel-screen" style="display:none;">
+    <div class="top-row">
+      <div>
+        <div class="eyebrow" style="margin-bottom:2px;">Yafa — Boshqaruv paneli</div>
+        <div class="company-name" id="company-name-display"></div>
+      </div>
+      <button class="btn-text" onclick="logout()">Chiqish</button>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" id="tab-search" onclick="switchTab('search')">Qidirish</div>
+      <div class="tab" id="tab-add" onclick="switchTab('add')">Yangi xodim</div>
+    </div>
+
+    <!-- QIDIRISH BO'LIMI -->
+    <section id="section-search" class="active">
+      <div class="search-row">
+        <input type="text" id="search-input" placeholder="Ism yoki kod bo'yicha qidiring">
+        <button onclick="doSearch()">Qidirish</button>
+      </div>
+      <div id="search-results"></div>
+    </section>
+
+    <!-- XODIM QO'SHISH BO'LIMI -->
+    <section id="section-add">
+      <label>Ism</label>
+      <input type="text" id="add-ism">
+
+      <label>Familiya</label>
+      <input type="text" id="add-familiya">
+
+      <label>Telefon</label>
+      <input type="tel" id="add-telefon" placeholder="+998901234567">
+
+      <label>Rasm</label>
+      <input type="file" id="add-rasm" accept="image/*">
+
+      <button class="btn-gold" onclick="addEmployee()">Xodimni qo'shish</button>
+      <div class="err" id="add-err"></div>
+      <div class="msg-ok" id="add-ok"></div>
+    </section>
+  </div>
+
+</div>
+
+<script>
+  // ===== Webhook manzillari - shu yerga haqiqiy URL'larni qo'ying =====
+  const WEBHOOKS = {
+    login: 'https://SIZNING-N8N-MANZILINGIZ.up.railway.app/webhook/yafa-admin-login',
+    search: 'https://SIZNING-N8N-MANZILINGIZ.up.railway.app/webhook/yafa-admin-search',
+    toggle: 'https://SIZNING-N8N-MANZILINGIZ.up.railway.app/webhook/yafa-admin-toggle',
+    add: 'https://SIZNING-N8N-MANZILINGIZ.up.railway.app/webhook/yafa-admin-add'
+  };
+
+  let token = localStorage.getItem('yafa_admin_token');
+  let companyName = localStorage.getItem('yafa_admin_company');
+
+  if (token) {
+    showPanel();
+  }
+
+  function showPanel() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('panel-screen').style.display = 'block';
+    document.getElementById('company-name-display').textContent = companyName || '';
+    doSearch();
+  }
+
+  function logout() {
+    localStorage.removeItem('yafa_admin_token');
+    localStorage.removeItem('yafa_admin_company');
+    location.reload();
+  }
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('section-' + name).classList.add('active');
+  }
+
+  // ===== Login =====
+  async function login() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    const err = document.getElementById('login-err');
+    err.textContent = '';
+
+    if (!username || !password) {
+      err.textContent = 'Login va parolni kiriting';
+      return;
+    }
+
+    try {
+      const res = await fetch(WEBHOOKS.login, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+
+      if (data.status === 'ok') {
+        token = data.token;
+        companyName = data.company_name;
+        localStorage.setItem('yafa_admin_token', token);
+        localStorage.setItem('yafa_admin_company', companyName);
+        showPanel();
+      } else {
+        err.textContent = data.message || 'Xatolik yuz berdi';
+      }
+    } catch (e) {
+      err.textContent = 'Ulanishda xatolik: ' + e.message;
+    }
+  }
+
+  // ===== Qidirish =====
+  async function doSearch() {
+    const qidiruv = document.getElementById('search-input').value.trim();
+    const resultsDiv = document.getElementById('search-results');
+    resultsDiv.innerHTML = '<div class="empty-note">Qidirilmoqda...</div>';
+
+    try {
+      const res = await fetch(WEBHOOKS.search, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, qidiruv })
+      });
+      const data = await res.json();
+
+      if (data.status !== 'ok') {
+        resultsDiv.innerHTML = '<div class="empty-note">' + (data.message || 'Xatolik') + '</div>';
+        return;
+      }
+
+      if (!data.results || data.results.length === 0) {
+        resultsDiv.innerHTML = '<div class="empty-note">Hech kim topilmadi</div>';
+        return;
+      }
+
+      resultsDiv.innerHTML = data.results.map(emp => {
+        const stampClass = emp.is_active ? 'faol' : 'nofaol';
+        const stampText = emp.is_active ? 'Faol' : 'Nofaol';
+        const actionText = emp.is_active ? 'Faolsizlantirish' : 'Faollashtirish';
+        const actionValue = emp.is_active ? 'faolsizlantirish' : 'faollashtirish';
+        return `
+          <div class="result-row">
+            <div class="kod">${emp.employee_code || '—'}</div>
+            <div class="ism">${emp.full_name}</div>
+            <div><span class="stamp ${stampClass}">${stampText}</span></div>
+            <div><button class="btn-text" onclick="toggleEmployee(${emp.id}, '${actionValue}', '${emp.full_name.replace(/'/g, "\\'")}')">${actionText}</button></div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      resultsDiv.innerHTML = '<div class="empty-note">Xatolik: ' + e.message + '</div>';
+    }
+  }
+
+  // ===== Faollashtirish/Faolsizlantirish =====
+  async function toggleEmployee(employeeId, action, fullName) {
+    const actionLabel = action === 'faollashtirish' ? 'faollashtirishni' : 'faolsizlantirishni';
+    const tasdiq = confirm(`${fullName} ni ${actionLabel} xohlaysizmi?`);
+    if (!tasdiq) return;
+
+    try {
+      const res = await fetch(WEBHOOKS.toggle, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, employee_id: employeeId, action })
+      });
+      const data = await res.json();
+
+      if (data.status === 'ok') {
+        doSearch();
+      } else {
+        alert(data.message || 'Xatolik yuz berdi');
+      }
+    } catch (e) {
+      alert('Xatolik: ' + e.message);
+    }
+  }
+
+  // ===== Xodim qo'shish =====
+  async function addEmployee() {
+    const ism = document.getElementById('add-ism').value.trim();
+    const familiya = document.getElementById('add-familiya').value.trim();
+    const telefon = document.getElementById('add-telefon').value.trim();
+    const rasmFile = document.getElementById('add-rasm').files[0];
+    const err = document.getElementById('add-err');
+    const ok = document.getElementById('add-ok');
+    err.textContent = '';
+    ok.textContent = '';
+
+    if (!ism || !familiya || !rasmFile) {
+      err.textContent = 'Ism, familiya va rasm to\'ldirilishi shart';
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('token', token);
+    formData.append('ism', ism);
+    formData.append('familiya', familiya);
+    formData.append('telefon', telefon);
+    formData.append('rasm', rasmFile);
+
+    try {
+      const res = await fetch(WEBHOOKS.add, { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (data.employee_code) {
+        ok.textContent = `Qo'shildi! Kod: ${data.employee_code}`;
+        document.getElementById('add-ism').value = '';
+        document.getElementById('add-familiya').value = '';
+        document.getElementById('add-telefon').value = '';
+        document.getElementById('add-rasm').value = '';
+      } else {
+        err.textContent = data.message || 'Xatolik yuz berdi';
+      }
+    } catch (e) {
+      err.textContent = 'Xatolik: ' + e.message;
+    }
+  }
+</script>
+
+</body>
+</html>
