@@ -184,6 +184,71 @@
   }
   section { display: none; }
   section.active { display: block; }
+  .confirm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(27, 36, 48, 0.55);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .confirm-overlay.show { display: flex; }
+  .confirm-box {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 28px 26px;
+    max-width: 300px;
+    margin: 20px;
+  }
+  .confirm-text {
+    font-family: 'Spectral', serif;
+    font-size: 17px;
+    line-height: 1.45;
+    margin-bottom: 22px;
+  }
+  .confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    align-items: center;
+  }
+
+  /* ===== Gorizontal siljishni butunlay oldini olish ===== */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  /* ===== Telefon va kichik ekranlar uchun (planshetdan kichik) ===== */
+  @media (max-width: 600px) {
+    .wrap {
+      padding: 32px 16px 60px 30px;
+    }
+    .wrap::before {
+      left: 12px;
+    }
+    h1 { font-size: 26px; }
+    .top-row {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .result-row {
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "ism holat"
+        "kod amal";
+      row-gap: 6px;
+      column-gap: 10px;
+    }
+    .result-row .ism { grid-area: ism; font-size: 15px; }
+    .result-row .kod { grid-area: kod; font-size: 12px; }
+    .result-row .holat { grid-area: holat; justify-self: end; }
+    .result-row .amal { grid-area: amal; justify-self: end; }
+    .result-row .amal button { font-size: 12.5px; }
+    .search-row { flex-wrap: wrap; }
+  }
 </style>
 </head>
 <body>
@@ -251,13 +316,24 @@
 
 </div>
 
+<!-- MAXSUS TASDIQLASH OYNASI -->
+<div id="confirm-modal" class="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-text" id="confirm-text"></div>
+    <div class="confirm-actions">
+      <button class="btn-text" id="confirm-no">Yo'q</button>
+      <button class="btn-gold" id="confirm-yes" style="margin-top:0;">Ha</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ===== Webhook manzillari - shu yerga haqiqiy URL'larni qo'ying =====
   const WEBHOOKS = {
-    login: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-login',
-    search: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-search',
-    toggle: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-toggle',
-    add: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add'
+    login: 'https://SIZNING-N8N-MANZILINGIZ.up.railway.app/webhook/yafa-admin-login',
+    search: 'https://SIZNING-N8N-MANZILINGIZ.up.railway.app/webhook/yafa-admin-search',
+    toggle: 'https://SIZNING-N8N-MANZILINGIZ.up.railway.app/webhook/yafa-admin-toggle',
+    add: 'https://SIZNING-N8N-MANZILINGIZ.up.railway.app/webhook/yafa-admin-add'
   };
 
   let token = localStorage.getItem('yafa_admin_token');
@@ -354,8 +430,8 @@
           <div class="result-row">
             <div class="kod">${emp.employee_code || '—'}</div>
             <div class="ism">${emp.full_name}</div>
-            <div><span class="stamp ${stampClass}">${stampText}</span></div>
-            <div><button class="btn-text" onclick="toggleEmployee(${emp.id}, '${actionValue}', '${emp.full_name.replace(/'/g, "\\'")}')">${actionText}</button></div>
+            <div class="holat"><span class="stamp ${stampClass}">${stampText}</span></div>
+            <div class="amal"><button class="btn-text" onclick="toggleEmployee(${emp.id}, '${actionValue}', '${emp.full_name.replace(/'/g, "\\'")}')">${actionText}</button></div>
           </div>
         `;
       }).join('');
@@ -364,10 +440,32 @@
     }
   }
 
+  // ===== Maxsus tasdiqlash oynasi =====
+  function customConfirm(message) {
+    return new Promise(resolve => {
+      const modal = document.getElementById('confirm-modal');
+      const yesBtn = document.getElementById('confirm-yes');
+      const noBtn = document.getElementById('confirm-no');
+      document.getElementById('confirm-text').textContent = message;
+      modal.classList.add('show');
+
+      function cleanup(result) {
+        modal.classList.remove('show');
+        yesBtn.removeEventListener('click', onYes);
+        noBtn.removeEventListener('click', onNo);
+        resolve(result);
+      }
+      function onYes() { cleanup(true); }
+      function onNo() { cleanup(false); }
+      yesBtn.addEventListener('click', onYes);
+      noBtn.addEventListener('click', onNo);
+    });
+  }
+
   // ===== Faollashtirish/Faolsizlantirish =====
   async function toggleEmployee(employeeId, action, fullName) {
     const actionLabel = action === 'faollashtirish' ? 'faollashtirishni' : 'faolsizlantirishni';
-    const tasdiq = confirm(`${fullName} ni ${actionLabel} xohlaysizmi?`);
+    const tasdiq = await customConfirm(`${fullName} ni ${actionLabel} xohlaysizmi?`);
     if (!tasdiq) return;
 
     try {
