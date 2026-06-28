@@ -124,7 +124,6 @@
       </div>
       <div class="brand-name">Yafa</div>
     </div>
-    <p id="tg-status">Tekshirilmoqda...</p>
 
     <!-- ID + Keldim/Ketdim formasi -->
     <div id="login-form" class="card" style="display:none;">
@@ -182,15 +181,9 @@
       gps_xatosi: "Joylashuvingizni aniqlab bo'lmadi. GPS ruxsatini yoqib, qaytadan urinib ko'ring."
     };
 
-    // ===== Telegram WebApp =====
+    // ===== Telegram WebApp (agar Mini App ichida ochilsa) =====
     const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      document.getElementById('tg-status').textContent = 'Telegram WebApp aniqlandi ✅';
-    } else {
-      document.getElementById('tg-status').textContent = 'Brauzer orqali ochilgan';
-    }
+    if (tg) { tg.ready(); tg.expand(); }
 
     // ===== QR/URL parametri: har korxona uchun alohida company_id =====
     const urlParams = new URLSearchParams(window.location.search);
