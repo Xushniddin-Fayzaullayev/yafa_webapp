@@ -2,161 +2,276 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yafa - Davomat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Yafa — Davomat</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js/dist/face-api.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: -apple-system, sans-serif;
-      text-align: center;
-      padding-top: 40px;
-      background: #f5f5f5;
-      margin: 0;
+    :root {
+      --primary: #2962FF;
+      --primary-dark: #1E4FD6;
+      --primary-soft: #EAF1FF;
+      --ink: #0F172A;
+      --body-c: #475569;
+      --muted: #94A3B8;
+      --bg: #F1F5F9;
+      --card: #FFFFFF;
+      --border: #E2E8F0;
+      --success: #16A34A;
+      --success-soft: #DCFCE7;
+      --danger: #DC2626;
+      --danger-soft: #FEE2E2;
+      --warning: #F59E0B;
+      --radius-lg: 20px;
+      --shadow: 0 12px 28px -10px rgba(15,23,42,.15), 0 2px 8px -2px rgba(15,23,42,.06);
     }
-    h2 { color: #222; margin-bottom: 5px; }
-    p { color: #666; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      padding: 32px 16px 48px;
+    }
+    .shell { max-width: 380px; margin: 0 auto; }
+    .brand { display:flex; align-items:center; gap:10px; margin-bottom: 8px; }
+    .brand-mark {
+      width: 36px; height:36px; border-radius: 10px; background: var(--primary);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      box-shadow: 0 4px 10px -2px rgba(41,98,255,.5);
+    }
+    .brand-mark svg { width:18px; height:18px; }
+    .brand-name { font-weight:800; font-size:18px; color:var(--ink); letter-spacing:-.2px; }
+    #tg-status { font-size:11px; color: var(--muted); margin: 0 0 22px 46px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 28px 24px;
+    }
+    .card-icon {
+      width:52px; height:52px; border-radius:14px; background: var(--primary-soft);
+      display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+    }
+    .card-icon svg { width:24px; height:24px; color: var(--primary); }
+    h2 { font-size:19px; font-weight:700; color:var(--ink); margin:0 0 4px; }
+    .subtitle { font-size:13.5px; color: var(--muted); margin:0 0 22px; line-height:1.4; }
+
+    label { display:block; font-size:12.5px; font-weight:600; color: var(--body-c); margin-bottom:6px; }
+    input[type="text"] {
+      width:100%; padding:13px 14px; font-size:15px; border:1.5px solid var(--border);
+      border-radius:12px; margin-bottom:18px; font-family:inherit; color:var(--ink);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input[type="text"]:focus {
+      outline:none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+
+    .segment { display:flex; gap:4px; background: var(--bg); border-radius:12px; padding:4px; margin-bottom:22px; }
+    .segment button {
+      flex:1; padding:10px; border:none; border-radius:9px; font-family:inherit;
+      font-size:13.5px; font-weight:600; color: var(--body-c); background:transparent; cursor:pointer;
+      transition: background .15s, color .15s;
+    }
+    .segment button.active { background: var(--primary); color:#fff; box-shadow:0 2px 6px -1px rgba(41,98,255,.5); }
+
+    .btn-primary {
+      width:100%; padding:14px; background: var(--primary); color:#fff; font-family:inherit;
+      font-weight:700; font-size:15px; border:none; border-radius:12px; cursor:pointer;
+      transition: background .15s, transform .1s;
+    }
+    .btn-primary:active { transform: scale(.98); }
+    .btn-primary:disabled { opacity:.55; cursor:not-allowed; }
+    .btn-primary:not(:disabled):hover { background: var(--primary-dark); }
+
+    .btn-secondary {
+      width:100%; padding:13px; background: var(--bg); color: var(--ink); font-family:inherit;
+      font-weight:600; font-size:14px; border:1.5px solid var(--border); border-radius:12px;
+      cursor:pointer; margin-top:10px;
+    }
+
+    #form-error { color: var(--danger); font-size:13px; min-height:16px; margin: -10px 0 14px; font-weight:500; }
+
+    #main-status { font-size:16px; font-weight:700; color: var(--ink); text-align:center; margin: 4px 0 6px; }
+    #debug-info, #model-status { font-size:11.5px; color: var(--muted); text-align:center; margin:0 0 12px; }
+
+    #face-circle {
+      width:230px; height:230px; border-radius:50%; overflow:hidden; border:6px solid var(--border);
+      margin: 8px auto 18px; display:none; position:relative; transition: border-color .25s; background:#000;
+    }
+    #video { width:100%; height:100%; object-fit:cover; transform: scaleX(-1); }
+    #photo { width:230px; height:230px; object-fit:cover; border-radius:50%; display:none; margin:8px auto 18px; border:6px solid var(--success); }
+
+    .result-icon { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin: 0 auto 18px; }
+    .result-icon.ok { background: var(--success-soft); }
+    .result-icon.fail { background: var(--danger-soft); }
+    .result-icon svg { width:30px; height:30px; }
+    .result-icon.ok svg { color: var(--success); }
+    .result-icon.fail svg { color: var(--danger); }
+    .result-title { font-size:18px; font-weight:700; text-align:center; color:var(--ink); margin:0 0 6px; }
+    .result-sub { font-size:13.5px; text-align:center; color:var(--muted); margin:0 0 22px; line-height:1.5; }
   </style>
 </head>
 <body>
-  <h2>Salom, Yafa!</h2>
-  <p id="tg-status" style="font-size: 12px; color: #aaa;">Tekshirilmoqda...</p>
+  <div class="shell">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="brand-name">Yafa</div>
+    </div>
+    <p id="tg-status">Tekshirilmoqda...</p>
 
-  <!-- ID + Keldim/Ketdim formasi - faqat QR orqali kirilganda ko'rinadi -->
-  <div id="login-form" style="display: none; margin-top: 30px; max-width: 280px; margin-left: auto; margin-right: auto;">
-    <p style="font-weight: bold; color: #222;">Davomat ma'lumotlari</p>
+    <!-- ID + Keldim/Ketdim formasi -->
+    <div id="login-form" class="card" style="display:none;">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
+      </div>
+      <h2>Davomat</h2>
+      <p class="subtitle">Xodim ID raqamingizni kiriting va amal turini tanlang</p>
 
-    <label style="display: block; text-align: left; font-size: 14px; color: #444; margin-bottom: 4px;">Xodim ID raqami</label>
-    <input id="employee-id-input" type="text" inputmode="numeric" placeholder="Masalan: 123"
-      style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; margin-bottom: 14px;">
+      <label for="employee-id-input">Xodim ID raqami</label>
+      <input id="employee-id-input" type="text" inputmode="numeric" placeholder="Masalan: BF688">
 
-    <label style="display: block; text-align: left; font-size: 14px; color: #444; margin-bottom: 4px;">Amal turi</label>
-    <select id="turi-select" style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; margin-bottom: 18px;">
-      <option value="keldi">✅ Keldim</option>
-      <option value="ketdi">🚪 Ketdim</option>
-    </select>
+      <label>Amal turi</label>
+      <div class="segment" id="turi-segment">
+        <button type="button" data-value="keldi" class="active">✅ Keldim</button>
+        <button type="button" data-value="ketdi">🚪 Ketdim</button>
+      </div>
 
-    <p id="form-error" style="color: #e74c3c; font-size: 13px; min-height: 16px;"></p>
+      <p id="form-error"></p>
 
-    <button id="continue-btn" style="width: 100%; font-size: 17px; padding: 12px; background: #2481cc; color: white; border: none; border-radius: 8px;">
-      Davom etish
-    </button>
-  </div>
-
-  <!-- Asosiy oqim (GPS + kamera) - forma to'ldirilgandan keyin, yoki Telegram orqali avtomatik ko'rinadi -->
-  <div id="main-flow" style="display: none;">
-    <p id="main-status" style="font-size: 19px; font-weight: bold; color: #222; margin-top: 30px;">
-      📍 Joylashuv tekshirilmoqda...
-    </p>
-    <p id="debug-info" style="font-size: 12px; color: #999;"></p>
-    <p id="model-status" style="font-size: 13px; color: #999;">Model yuklanmoqda...</p>
-
-    <div id="face-circle" style="width: 260px; height: 260px; border-radius: 50%; overflow: hidden; border: 6px solid #ccc; margin: 15px auto; display: none; position: relative; transition: border-color 0.25s;">
-      <video id="video" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+      <button id="continue-btn" class="btn-primary">Davom etish</button>
     </div>
 
-    <canvas id="canvas" style="display: none;"></canvas>
+    <!-- Asosiy oqim (GPS + kamera) -->
+    <div id="main-flow" class="card" style="display:none;">
+      <p id="main-status">📍 Joylashuv tekshirilmoqda...</p>
+      <p id="debug-info"></p>
+      <p id="model-status">Model yuklanmoqda...</p>
 
-    <div style="margin-top: 15px;">
-      <img id="photo" style="width: 260px; height: 260px; object-fit: cover; border-radius: 50%; display: none; margin: 0 auto;">
+      <div id="face-circle">
+        <video id="video" autoplay playsinline muted></video>
+      </div>
+      <canvas id="canvas" style="display:none;"></canvas>
+      <img id="photo">
+    </div>
+
+    <!-- Yakuniy natija -->
+    <div id="result-view" class="card" style="display:none;">
+      <div id="result-icon" class="result-icon"></div>
+      <p id="result-title" class="result-title"></p>
+      <p id="result-sub" class="result-sub"></p>
+      <button id="retry-btn" class="btn-secondary" style="display:none;">Qaytadan urinib ko'rish</button>
     </div>
   </div>
 
   <script>
-    // ===== Telegram WebApp ishga tushirish =====
+    const N8N_WEBHOOK_URL = 'https://n8n-production-9a12.up.railway.app/webhook/yafa-checkin';
+
+    const REASON_MESSAGES = {
+      xodim_topilmadi_yoki_faolsiz: "Xodim topilmadi yoki faolsizlantirilgan. Administratorga murojaat qiling.",
+      company_mismatch: "Bu QR kod boshqa korxonaga tegishli.",
+      bugun_allaqachon_belgilangan: "Siz bugun bu amal turini allaqachon belgilagansiz.",
+      joylashuv_mos_emas: "Siz ish hududidan tashqaridasiz.",
+      yuz_tasdiqlanmadi: "Yuzingiz tasdiqlanmadi. Yaxshi yorug'lik joyida qaytadan urinib ko'ring."
+    };
+
+    // ===== Telegram WebApp =====
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
       tg.expand();
       document.getElementById('tg-status').textContent = 'Telegram WebApp aniqlandi ✅';
     } else {
-      document.getElementById('tg-status').textContent = 'Browser orqali ochilgan (Telegram tashqarisida)';
+      document.getElementById('tg-status').textContent = 'Brauzer orqali ochilgan';
     }
 
-    // ===== Ish joyi koordinatasi - QR kod ichida (har korxona uchun alohida QR) =====
+    // ===== QR/URL parametri: har korxona uchun alohida company_id =====
     const urlParams = new URLSearchParams(window.location.search);
-    const targetLat = parseFloat(urlParams.get('lat')) || 42.114050;   // TEST qiymat
-    const targetLng = parseFloat(urlParams.get('lng')) || 60.059947;   // TEST qiymat
-    const radius = parseFloat(urlParams.get('radius')) || 200;          // metr, TEST qiymat
+    const companyId = parseInt(urlParams.get('company_id')) || 1;
 
-    // ===== Xodim ID va amal turi - har doim QR sahifasida qo'lda kiritiladi =====
     let employeeId = null;
-    let amalTuri = null;
+    let amalTuri = 'keldi';
+    let lastLat = null;
+    let lastLng = null;
 
-    function asosiyOqimniBoshla() {
-      document.getElementById('login-form').style.display = 'none';
-      document.getElementById('main-flow').style.display = 'block';
-      boshla();
-    }
+    document.querySelectorAll('#turi-segment button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#turi-segment button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        amalTuri = btn.dataset.value;
+      });
+    });
 
-    document.getElementById('continue-btn').addEventListener('click', () => {
+    document.getElementById('login-form').style.display = 'block';
+
+    // ===== "Davom etish" — stage:check so'rovi =====
+    document.getElementById('continue-btn').addEventListener('click', async () => {
       const kiritilganId = document.getElementById('employee-id-input').value.trim();
-      const tanlanganTuri = document.getElementById('turi-select').value;
       const xato = document.getElementById('form-error');
+      const btn = document.getElementById('continue-btn');
 
       if (!kiritilganId) {
         xato.textContent = 'Iltimos, ID raqamingizni kiriting';
         return;
       }
-
       xato.textContent = '';
       employeeId = kiritilganId;
-      amalTuri = tanlanganTuri;
-      asosiyOqimniBoshla();
+      btn.disabled = true;
+      btn.textContent = 'Tekshirilmoqda...';
+
+      try {
+        const res = await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employee_code: employeeId, company_id: companyId, type: amalTuri, stage: 'check' })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          document.getElementById('login-form').style.display = 'none';
+          document.getElementById('main-flow').style.display = 'block';
+          boshla();
+        } else {
+          xato.textContent = REASON_MESSAGES[data.reason] || 'Xatolik yuz berdi. Qaytadan urinib ko\'ring.';
+          btn.disabled = false;
+          btn.textContent = 'Davom etish';
+        }
+      } catch (e) {
+        xato.textContent = 'Ulanishda xatolik. Internetni tekshirib, qaytadan urinib ko\'ring.';
+        btn.disabled = false;
+        btn.textContent = 'Davom etish';
+      }
     });
 
-    // Sahifa ochilganda - har doim forma ko'rsatiladi (yagona yo'l: QR)
-    document.getElementById('login-form').style.display = 'block';
-
-    // ===== Ikki koordinata orasidagi masofa (metr) - Haversine formula =====
-    function masofaHisobla(lat1, lng1, lat2, lng2) {
-      const R = 6371000;
-      const toRad = x => x * Math.PI / 180;
-      const dLat = toRad(lat2 - lat1);
-      const dLng = toRad(lng2 - lng1);
-      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
-
-    // ===== Yuz aniqlash modelini yuklash =====
+    // ===== Yuz aniqlash modeli =====
     const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights';
     let modelTayyor = false;
 
     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL)
-      .then(() => {
-        modelTayyor = true;
-        document.getElementById('model-status').textContent = '';
-      })
-      .catch(() => {
-        document.getElementById('model-status').textContent = 'Model yuklanmadi, oddiy rejimda davom etamiz';
-      });
+      .then(() => { modelTayyor = true; document.getElementById('model-status').textContent = ''; })
+      .catch(() => { document.getElementById('model-status').textContent = 'Model yuklanmadi, oddiy rejimda davom etamiz'; });
 
-    // ===== ASOSIY OQIM: sahifa ochilganda avtomatik GPS so'raladi =====
+    // ===== GPS olish — masofa endi mijozda solishtirilmaydi, =====
+    // ===== buni server "submit" bosqichida, korxonaning bazadagi haqiqiy koordinatasi bilan tekshiradi =====
     function boshla() {
       if (!navigator.geolocation) {
         document.getElementById('main-status').textContent = '❌ Bu qurilma GPS qo\'llab-quvvatlamaydi';
         return;
       }
-
-      document.getElementById('main-status').textContent = '📍 Joylashuv tekshirilmoqda...';
+      document.getElementById('main-status').textContent = '📍 Joylashuv olinmoqda...';
 
       navigator.geolocation.getCurrentPosition(
         function (position) {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const masofa = masofaHisobla(lat, lng, targetLat, targetLng);
-
-          document.getElementById('debug-info').textContent =
-            `(test ma'lumot: masofa ${Math.round(masofa)} metr, ruxsat etilgan radius ${radius} metr)`;
-
-          if (masofa > radius) {
-            document.getElementById('main-status').textContent =
-              '❌ Siz ish hududida emassiz';
-          } else {
-            document.getElementById('main-status').textContent = '✅ Hudud tasdiqlandi';
-            kameraOch();
-          }
+          lastLat = position.coords.latitude;
+          lastLng = position.coords.longitude;
+          document.getElementById('main-status').textContent = '✅ Joylashuv olindi';
+          kameraOch();
         },
         function (error) {
           document.getElementById('main-status').textContent = '❌ GPS xatosi: ' + error.message;
@@ -165,7 +280,6 @@
       );
     }
 
-    // ===== Kamera ochish (GPS tasdiqlangandan keyin avtomatik chaqiriladi) =====
     let kameraStream = null;
     let aniqlashIntervalId = null;
     let yaxshiHolatSoni = 0;
@@ -183,17 +297,13 @@
           video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } },
           audio: false
         });
-
         video.srcObject = kameraStream;
         faceCircle.style.display = 'block';
 
-        await new Promise((resolve) => {
-          video.onloadedmetadata = () => resolve();
-        });
+        await new Promise((resolve) => { video.onloadedmetadata = () => resolve(); });
         await video.play();
 
-        document.getElementById('main-status').textContent = 'Yuzingizni doira ichiga, markazga joylashtiring';
-
+        document.getElementById('main-status').textContent = 'Yuzingizni doira ichiga joylashtiring';
         yaxshiHolatSoni = 0;
         aniqlashIntervalId = setInterval(yuzniTekshir, 250);
       } catch (error) {
@@ -207,69 +317,44 @@
 
     async function yuzniTekshir() {
       const video = document.getElementById('video');
-
-      if (!modelTayyor || !video.videoWidth) {
-        halqaRangi('#ccc');
-        return;
-      }
+      if (!modelTayyor || !video.videoWidth) { halqaRangi('var(--border)'); return; }
 
       const detection = await faceapi.detectSingleFace(
-        video,
-        new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
+        video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
       );
 
       if (!detection) {
-        halqaRangi('#e74c3c');
-        yaxshiHolatSoni = 0;
+        halqaRangi('#DC2626'); yaxshiHolatSoni = 0;
         document.getElementById('main-status').textContent = 'Yuzingiz ko\'rinmayapti — kameraga qarang';
         return;
       }
 
       const box = detection.box;
-      const videoW = video.videoWidth;
-      const videoH = video.videoHeight;
-
-      const faceCenterX = box.x + box.width / 2;
-      const faceCenterY = box.y + box.height / 2;
+      const videoW = video.videoWidth, videoH = video.videoHeight;
+      const faceCenterX = box.x + box.width / 2, faceCenterY = box.y + box.height / 2;
       const markazdanFarqX = Math.abs(faceCenterX - videoW / 2) / videoW;
       const markazdanFarqY = Math.abs(faceCenterY - videoH / 2) / videoH;
       const yuzNisbati = box.width / videoW;
-
       const markazda = markazdanFarqX < 0.18 && markazdanFarqY < 0.18;
       const masofaTogri = yuzNisbati > 0.22 && yuzNisbati < 0.75;
 
       if (markazda && masofaTogri) {
-        halqaRangi('#2ecc71');
+        halqaRangi('#16A34A');
         document.getElementById('main-status').textContent = 'Ajoyib! Joyida turing...';
         yaxshiHolatSoni++;
-
-        if (yaxshiHolatSoni >= 4) {
-          clearInterval(aniqlashIntervalId);
-          rasmOl();
-        }
+        if (yaxshiHolatSoni >= 4) { clearInterval(aniqlashIntervalId); rasmOl(); }
       } else {
-        halqaRangi('#f1c40f');
-        yaxshiHolatSoni = 0;
-        if (!masofaTogri && yuzNisbati <= 0.22) {
-          document.getElementById('main-status').textContent = 'Biroz yaqinroq keling';
-        } else if (!masofaTogri) {
-          document.getElementById('main-status').textContent = 'Biroz uzoqroq turing';
-        } else {
-          document.getElementById('main-status').textContent = 'Yuzingizni markazga joylashtiring';
-        }
+        halqaRangi('#F59E0B'); yaxshiHolatSoni = 0;
+        if (!masofaTogri && yuzNisbati <= 0.22) document.getElementById('main-status').textContent = 'Biroz yaqinroq keling';
+        else if (!masofaTogri) document.getElementById('main-status').textContent = 'Biroz uzoqroq turing';
+        else document.getElementById('main-status').textContent = 'Yuzingizni markazga joylashtiring';
       }
     }
 
     function rasmOl() {
       const video = document.getElementById('video');
       const canvas = document.getElementById('canvas');
-      const photo = document.getElementById('photo');
       const faceCircle = document.getElementById('face-circle');
-
-      if (!video.videoWidth || !video.videoHeight) {
-        document.getElementById('main-status').textContent = 'Video hali tayyor emas ❌';
-        return;
-      }
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -278,18 +363,60 @@
       ctx.scale(-1, 1);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-      photo.src = dataUrl;
-      photo.style.display = 'block';
-      halqaRangi('#2ecc71');
-
-      if (kameraStream) {
-        kameraStream.getTracks().forEach(track => track.stop());
-      }
+      if (kameraStream) kameraStream.getTracks().forEach(track => track.stop());
       faceCircle.style.display = 'none';
-      document.getElementById('main-status').textContent = 'Rasmga olindi ✅ (keyingi qadamda yuboriladi)';
+      document.getElementById('main-status').textContent = 'Yuborilmoqda...';
+
+      canvas.toBlob(blob => yuborish(blob), 'image/jpeg', 0.85);
     }
 
+    // ===== Webhook'ga yakuniy yuborish (stage: submit) =====
+    async function yuborish(blob) {
+      const formData = new FormData();
+      formData.append('employee_code', employeeId);
+      formData.append('company_id', companyId);
+      formData.append('type', amalTuri);
+      formData.append('stage', 'submit');
+      formData.append('lat', lastLat);
+      formData.append('lng', lastLng);
+      formData.append('isMocked', 'false');
+      formData.append('rasm', blob, 'checkin.jpg');
+
+      try {
+        const res = await fetch(N8N_WEBHOOK_URL, { method: 'POST', body: formData });
+        const data = await res.json();
+        natijaniKorsat(data);
+      } catch (e) {
+        natijaniKorsat({ success: false, reason: 'tarmoq_xatosi' });
+      }
+    }
+
+    function natijaniKorsat(data) {
+      document.getElementById('main-flow').style.display = 'none';
+      const resultView = document.getElementById('result-view');
+      const icon = document.getElementById('result-icon');
+      const title = document.getElementById('result-title');
+      const sub = document.getElementById('result-sub');
+      const retryBtn = document.getElementById('retry-btn');
+
+      resultView.style.display = 'block';
+
+      if (data.success) {
+        icon.className = 'result-icon ok';
+        icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        title.textContent = amalTuri === 'keldi' ? 'Kelishingiz belgilandi ✅' : 'Ketishingiz belgilandi ✅';
+        sub.textContent = (data.employee_name || '') + ' — muvaffaqiyatli yozildi';
+        retryBtn.style.display = 'none';
+      } else {
+        icon.className = 'result-icon fail';
+        icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>';
+        title.textContent = 'Amalga oshmadi';
+        sub.textContent = REASON_MESSAGES[data.reason] || 'Xatolik yuz berdi. Qaytadan urinib ko\'ring.';
+        retryBtn.style.display = 'block';
+      }
+    }
+
+    document.getElementById('retry-btn').addEventListener('click', () => location.reload());
   </script>
 </body>
 </html>
