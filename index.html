@@ -135,7 +135,7 @@
       <p class="subtitle">Xodim ID raqamingizni kiriting va amal turini tanlang</p>
 
       <label for="employee-id-input">Xodim ID raqami</label>
-      <input id="employee-id-input" type="text" inputmode="numeric" placeholder="Masalan: BF688">
+      <input id="employee-id-input" type="text" placeholder="Masalan: BF688" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false">
 
       <label>Amal turi</label>
       <div class="segment" id="turi-segment">
@@ -178,7 +178,8 @@
       company_mismatch: "Bu QR kod boshqa korxonaga tegishli.",
       bugun_allaqachon_belgilangan: "Siz bugun bu amal turini allaqachon belgilagansiz.",
       joylashuv_mos_emas: "Siz ish hududidan tashqaridasiz.",
-      yuz_tasdiqlanmadi: "Yuzingiz tasdiqlanmadi. Yaxshi yorug'lik joyida qaytadan urinib ko'ring."
+      yuz_tasdiqlanmadi: "Yuzingiz tasdiqlanmadi. Yaxshi yorug'lik joyida qaytadan urinib ko'ring.",
+      gps_xatosi: "Joylashuvingizni aniqlab bo'lmadi. GPS ruxsatini yoqib, qaytadan urinib ko'ring."
     };
 
     // ===== Telegram WebApp =====
@@ -209,6 +210,9 @@
     });
 
     document.getElementById('login-form').style.display = 'block';
+    document.getElementById('employee-id-input').addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase();
+    });
 
     // ===== "Davom etish" — stage:check so'rovi =====
     document.getElementById('continue-btn').addEventListener('click', async () => {
@@ -259,25 +263,35 @@
 
     // ===== GPS olish — masofa endi mijozda solishtirilmaydi, =====
     // ===== buni server "submit" bosqichida, korxonaning bazadagi haqiqiy koordinatasi bilan tekshiradi =====
-    function boshla() {
-      if (!navigator.geolocation) {
-        document.getElementById('main-status').textContent = '❌ Bu qurilma GPS qo\'llab-quvvatlamaydi';
-        return;
-      }
-      document.getElementById('main-status').textContent = '📍 Joylashuv olinmoqda...';
+    let gpsPromise = null;
 
-      navigator.geolocation.getCurrentPosition(
-        function (position) {
-          lastLat = position.coords.latitude;
-          lastLng = position.coords.longitude;
-          document.getElementById('main-status').textContent = '✅ Joylashuv olindi';
-          kameraOch();
-        },
-        function (error) {
-          document.getElementById('main-status').textContent = '❌ GPS xatosi: ' + error.message;
-        },
-        { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
-      );
+    function gpsOlish() {
+      gpsPromise = new Promise((resolve) => {
+        if (!navigator.geolocation) {
+          document.getElementById('debug-info').textContent = '❌ GPS qo\'llab-quvvatlanmaydi';
+          resolve(false);
+          return;
+        }
+        document.getElementById('debug-info').textContent = '📍 joylashuv aniqlanmoqda...';
+        navigator.geolocation.getCurrentPosition(
+          function (position) {
+            lastLat = position.coords.latitude;
+            lastLng = position.coords.longitude;
+            document.getElementById('debug-info').textContent = '📍 joylashuv aniqlandi ✅';
+            resolve(true);
+          },
+          function (error) {
+            document.getElementById('debug-info').textContent = '❌ GPS xatosi: ' + error.message;
+            resolve(false);
+          },
+          { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
+        );
+      });
+    }
+
+    function boshla() {
+      gpsOlish();    // orqa fonda, kamerani kutmasdan boshlanadi
+      kameraOch();   // darhol ochiladi
     }
 
     let kameraStream = null;
@@ -351,7 +365,7 @@
       }
     }
 
-    function rasmOl() {
+    async function rasmOl() {
       const video = document.getElementById('video');
       const canvas = document.getElementById('canvas');
       const faceCircle = document.getElementById('face-circle');
@@ -365,8 +379,18 @@
 
       if (kameraStream) kameraStream.getTracks().forEach(track => track.stop());
       faceCircle.style.display = 'none';
-      document.getElementById('main-status').textContent = 'Yuborilmoqda...';
 
+      if (gpsPromise) {
+        document.getElementById('main-status').textContent = 'Joylashuv tasdiqlanmoqda...';
+        await gpsPromise;
+      }
+
+      if (lastLat == null || lastLng == null) {
+        natijaniKorsat({ success: false, reason: 'gps_xatosi' });
+        return;
+      }
+
+      document.getElementById('main-status').textContent = 'Yuborilmoqda...';
       canvas.toBlob(blob => yuborish(blob), 'image/jpeg', 0.85);
     }
 
