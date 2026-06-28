@@ -5,248 +5,176 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Yafa — Boshqaruv paneli</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #1B2430;
-    --paper: #ECE7DC;
-    --paper-line: #D8CFBE;
-    --stamp-green: #2F6B4F;
-    --stamp-red: #9B2C2C;
-    --gold: #A9842C;
+    --primary: #2962FF;
+    --primary-dark: #1E4FD6;
+    --primary-soft: #EAF1FF;
+    --ink: #0F172A;
+    --body-c: #475569;
+    --muted: #94A3B8;
+    --bg: #F1F5F9;
+    --card: #FFFFFF;
+    --border: #E2E8F0;
+    --success: #16A34A;
+    --success-soft: #DCFCE7;
+    --danger: #DC2626;
+    --danger-soft: #FEE2E2;
+    --radius-lg: 20px;
+    --shadow: 0 12px 28px -10px rgba(15,23,42,.15), 0 2px 8px -2px rgba(15,23,42,.06);
   }
   * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; max-width: 100%; }
   body {
     margin: 0;
-    background: var(--paper);
+    background: var(--bg);
     color: var(--ink);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, sans-serif;
   }
-  .wrap {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 48px 28px 80px 48px;
-    position: relative;
+  .wrap { max-width: 720px; margin: 0 auto; padding: 36px 20px 60px; }
+
+  /* ===== Brend ===== */
+  .brand { display:flex; align-items:center; gap:10px; margin-bottom: 28px; }
+  .brand-mark {
+    width: 36px; height:36px; border-radius: 10px; background: var(--primary);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    box-shadow: 0 4px 10px -2px rgba(41,98,255,.5);
   }
-  .wrap::before {
-    content: '';
-    position: absolute;
-    left: 18px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--stamp-red);
-    opacity: 0.5;
+  .brand-mark svg { width:18px; height:18px; }
+  .brand-name { font-weight:800; font-size:18px; color:var(--ink); letter-spacing:-.2px; }
+
+  /* ===== Kartochka (umumiy) ===== */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 28px 24px;
   }
-  h1 {
-    font-family: 'Spectral', serif;
-    font-weight: 600;
-    font-size: 30px;
-    margin: 0 0 2px;
-    letter-spacing: 0.5px;
+  .card-icon {
+    width:52px; height:52px; border-radius:14px; background: var(--primary-soft);
+    display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+  }
+  .card-icon svg { width:24px; height:24px; color: var(--primary); }
+  h1 { font-size:19px; font-weight:700; color:var(--ink); margin:0 0 4px; }
+  .subtitle { font-size:13.5px; color: var(--muted); margin:0 0 22px; line-height:1.4; }
+
+  /* ===== Forma elementlari ===== */
+  label { display:block; font-size:12.5px; font-weight:600; color: var(--body-c); margin-bottom:6px; margin-top:16px; }
+  label:first-of-type { margin-top: 0; }
+  input[type="text"], input[type="password"], input[type="tel"] {
+    width:100%; padding:13px 14px; font-size:15px; border:1.5px solid var(--border);
+    border-radius:12px; font-family:inherit; color:var(--ink);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus { outline:none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
+  input[type="file"] {
+    width:100%; font-family:inherit; font-size:13.5px; color: var(--body-c);
+    padding:10px 0;
+  }
+
+  .btn-primary {
+    width:100%; padding:14px; background: var(--primary); color:#fff; font-family:inherit;
+    font-weight:700; font-size:15px; border:none; border-radius:12px; cursor:pointer;
+    margin-top:22px; transition: background .15s, transform .1s;
+  }
+  .btn-primary:active { transform: scale(.98); }
+  .btn-primary:hover { background: var(--primary-dark); }
+
+  .btn-text {
+    background:none; border:none; font-family:inherit; font-size:13.5px; font-weight:600;
+    color: var(--primary); cursor:pointer; padding:0;
+  }
+  .btn-text:hover { color: var(--primary-dark); }
+
+  .err { color: var(--danger); font-size:13px; margin-top:14px; min-height:16px; font-weight:500; }
+  .msg-ok { color: var(--success); font-size:13px; margin-top:14px; min-height:16px; font-weight:500; }
+
+  /* ===== Login ekrani ===== */
+  #login-screen { max-width: 380px; margin: 40px auto 0; }
+
+  /* ===== Panel header ===== */
+  .top-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 18px; margin-bottom: 22px; border-bottom: 1px solid var(--border);
   }
   .eyebrow {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    opacity: 0.55;
-    margin-bottom: 28px;
+    font-size: 11.5px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; margin-bottom: 3px;
   }
-  label {
-    display: block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    opacity: 0.6;
-    margin-bottom: 6px;
-    margin-top: 18px;
-  }
-  input[type="text"], input[type="password"], input[type="tel"] {
-    width: 100%;
-    border: none;
-    border-bottom: 1.5px solid var(--paper-line);
-    background: transparent;
-    font-family: 'Inter', sans-serif;
-    font-size: 16px;
-    padding: 8px 2px;
-    color: var(--ink);
-  }
-  input:focus { outline: none; border-bottom-color: var(--ink); }
-  input[type="file"] { font-family: 'Inter', sans-serif; font-size: 14px; margin-top: 4px; }
-  .btn-gold {
-    background: var(--gold);
-    color: #fff;
-    border: none;
-    padding: 12px 22px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 15px;
-    cursor: pointer;
-    margin-top: 22px;
-  }
-  .btn-gold:hover { opacity: 0.92; }
-  .btn-text {
-    background: none;
-    border: none;
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: underline;
-    padding: 0;
-  }
-  .err {
-    color: var(--stamp-red);
-    font-size: 13px;
-    margin-top: 14px;
-    min-height: 16px;
-  }
-  .msg-ok {
-    color: var(--stamp-green);
-    font-size: 13px;
-    margin-top: 14px;
-    min-height: 16px;
-  }
-  .top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    border-bottom: 2px solid var(--ink);
-    padding-bottom: 14px;
-    margin-bottom: 24px;
-  }
-  .company-name {
-    font-family: 'Spectral', serif;
-    font-size: 18px;
-  }
-  .tabs { display: flex; gap: 26px; margin-bottom: 26px; }
+  .company-name { font-size: 20px; font-weight: 700; color: var(--ink); }
+
+  /* ===== Tablar (segment) ===== */
+  .tabs { display:flex; gap:4px; background: var(--bg); border-radius:12px; padding:4px; margin-bottom:24px; }
   .tab {
-    font-family: 'IBM Plex Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 12.5px;
-    padding-bottom: 8px;
-    cursor: pointer;
-    opacity: 0.5;
-    border-bottom: 2px solid transparent;
+    flex:1; text-align:center; padding:10px; border-radius:9px; font-size:13.5px;
+    font-weight:600; color: var(--body-c); cursor:pointer; transition: background .15s, color .15s;
   }
-  .tab.active { opacity: 1; border-bottom-color: var(--gold); }
-  .search-row { display: flex; gap: 10px; margin-bottom: 22px; }
-  .search-row input { flex: 1; }
+  .tab.active { background: var(--primary); color:#fff; box-shadow:0 2px 6px -1px rgba(41,98,255,.5); }
+
+  /* ===== Qidirish ===== */
+  .search-row { display:flex; gap:10px; margin-bottom:22px; }
+  .search-row input { flex:1; }
   .search-row button {
-    background: var(--ink);
-    color: #fff;
-    border: none;
-    padding: 0 18px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    cursor: pointer;
+    background: var(--primary); color:#fff; border:none; padding:0 22px;
+    font-family:inherit; font-weight:700; font-size:14px; border-radius:12px; cursor:pointer;
   }
+  .search-row button:hover { background: var(--primary-dark); }
+
+  /* ===== Natija qatorlari ===== */
   .result-row {
-    display: grid;
-    grid-template-columns: 84px 1fr 100px 110px;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--paper-line);
+    display: grid; grid-template-columns: 80px 1fr 90px 130px;
+    align-items: center; gap: 12px; padding: 14px 4px; border-bottom: 1px solid var(--border);
   }
-  .result-row .kod {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    opacity: 0.7;
-  }
-  .result-row .ism { font-family: 'Spectral', serif; font-size: 16px; }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .kod { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+  .result-row .ism { font-size: 15px; font-weight: 600; color: var(--ink); }
+
   .stamp {
-    display: inline-block;
-    border: 2.5px solid var(--c);
-    outline: 1px solid var(--c);
-    outline-offset: 3px;
-    color: var(--c);
-    border-radius: 50%;
-    padding: 5px 4px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10.5px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    text-align: center;
-    transform: rotate(-7deg);
-    font-weight: 600;
+    display: inline-block; padding: 4px 11px; border-radius: 999px;
+    font-size: 12px; font-weight: 600;
   }
-  .stamp.faol { --c: var(--stamp-green); }
-  .stamp.nofaol { --c: var(--stamp-red); }
-  .empty-note {
-    font-family: 'Spectral', serif;
-    font-style: italic;
-    opacity: 0.6;
-    padding: 20px 0;
-  }
+  .stamp.faol { background: var(--success-soft); color: var(--success); }
+  .stamp.nofaol { background: var(--danger-soft); color: var(--danger); }
+
+  .result-row .amal button { font-size: 13px; }
+
+  .empty-note { font-size: 14px; color: var(--muted); padding: 24px 0; text-align: center; }
+
   section { display: none; }
   section.active { display: block; }
+
+  /* ===== Tasdiqlash oynasi ===== */
   .confirm-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(27, 36, 48, 0.55);
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
+    display: none; position: fixed; inset: 0; background: rgba(15,23,42,.45);
+    align-items: center; justify-content: center; z-index: 1000;
   }
   .confirm-overlay.show { display: flex; }
   .confirm-box {
-    background: var(--paper);
-    border: 2px solid var(--ink);
-    box-shadow: 6px 6px 0 var(--ink);
-    padding: 28px 26px;
-    max-width: 300px;
-    margin: 20px;
+    background: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow);
+    padding: 26px 24px; max-width: 300px; margin: 20px;
   }
-  .confirm-text {
-    font-family: 'Spectral', serif;
-    font-size: 17px;
-    line-height: 1.45;
-    margin-bottom: 22px;
-  }
-  .confirm-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 16px;
-    align-items: center;
+  .confirm-text { font-size: 15.5px; color: var(--ink); line-height: 1.5; margin-bottom: 20px; font-weight: 500; }
+  .confirm-actions { display: flex; justify-content: flex-end; gap: 18px; align-items: center; }
+  .confirm-actions .btn-text { color: var(--body-c); }
+  .confirm-actions #confirm-yes {
+    background: var(--primary); color: #fff; padding: 9px 18px; border-radius: 10px; font-weight: 700;
   }
 
-  /* ===== Gorizontal siljishni butunlay oldini olish ===== */
-  html, body {
-    overflow-x: hidden;
-    max-width: 100%;
-  }
-
-  /* ===== Telefon va kichik ekranlar uchun (planshetdan kichik) ===== */
+  /* ===== Kichik ekranlar ===== */
   @media (max-width: 600px) {
-    .wrap {
-      padding: 32px 16px 60px 30px;
-    }
-    .wrap::before {
-      left: 12px;
-    }
-    h1 { font-size: 26px; }
-    .top-row {
-      flex-wrap: wrap;
-      gap: 8px;
-    }
+    .wrap { padding: 28px 14px 50px; }
+    .top-row { flex-wrap: wrap; gap: 10px; }
     .result-row {
       grid-template-columns: 1fr auto;
-      grid-template-areas:
-        "ism holat"
-        "kod amal";
-      row-gap: 6px;
-      column-gap: 10px;
+      grid-template-areas: "ism holat" "kod amal";
+      row-gap: 6px; column-gap: 10px;
     }
-    .result-row .ism { grid-area: ism; font-size: 15px; }
-    .result-row .kod { grid-area: kod; font-size: 12px; }
+    .result-row .ism { grid-area: ism; }
+    .result-row .kod { grid-area: kod; }
     .result-row .holat { grid-area: holat; justify-self: end; }
     .result-row .amal { grid-area: amal; justify-self: end; }
-    .result-row .amal button { font-size: 12.5px; }
     .search-row { flex-wrap: wrap; }
   }
 </style>
@@ -255,26 +183,38 @@
 
 <div class="wrap">
 
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="brand-name">Yafa</div>
+  </div>
+
   <!-- LOGIN EKRANI -->
   <div id="login-screen">
-    <h1>Yafa</h1>
-    <div class="eyebrow">Boshqaruv paneli</div>
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>
+      </div>
+      <h1>Boshqaruv paneliga kirish</h1>
+      <p class="subtitle">Login va parolingizni kiriting</p>
 
-    <label>Login</label>
-    <input type="text" id="login-username">
+      <label>Login</label>
+      <input type="text" id="login-username">
 
-    <label>Parol</label>
-    <input type="password" id="login-password">
+      <label>Parol</label>
+      <input type="password" id="login-password">
 
-    <button class="btn-gold" onclick="login()">Kirish</button>
-    <div class="err" id="login-err"></div>
+      <button class="btn-primary" onclick="login()">Kirish</button>
+      <div class="err" id="login-err"></div>
+    </div>
   </div>
 
   <!-- ASOSIY PANEL -->
   <div id="panel-screen" style="display:none;">
     <div class="top-row">
       <div>
-        <div class="eyebrow" style="margin-bottom:2px;">Yafa — Boshqaruv paneli</div>
+        <div class="eyebrow">Boshqaruv paneli</div>
         <div class="company-name" id="company-name-display"></div>
       </div>
       <button class="btn-text" onclick="logout()">Chiqish</button>
@@ -285,33 +225,35 @@
       <div class="tab" id="tab-add" onclick="switchTab('add')">Yangi xodim</div>
     </div>
 
-    <!-- QIDIRISH BO'LIMI -->
-    <section id="section-search" class="active">
-      <div class="search-row">
-        <input type="text" id="search-input" placeholder="Ism yoki kod bo'yicha qidiring">
-        <button onclick="doSearch()">Qidirish</button>
-      </div>
-      <div id="search-results"></div>
-    </section>
+    <div class="card">
+      <!-- QIDIRISH BO'LIMI -->
+      <section id="section-search" class="active">
+        <div class="search-row">
+          <input type="text" id="search-input" placeholder="Ism yoki kod bo'yicha qidiring">
+          <button onclick="doSearch()">Qidirish</button>
+        </div>
+        <div id="search-results"></div>
+      </section>
 
-    <!-- XODIM QO'SHISH BO'LIMI -->
-    <section id="section-add">
-      <label>Ism</label>
-      <input type="text" id="add-ism">
+      <!-- XODIM QO'SHISH BO'LIMI -->
+      <section id="section-add">
+        <label>Ism</label>
+        <input type="text" id="add-ism">
 
-      <label>Familiya</label>
-      <input type="text" id="add-familiya">
+        <label>Familiya</label>
+        <input type="text" id="add-familiya">
 
-      <label>Telefon</label>
-      <input type="tel" id="add-telefon" placeholder="+998901234567">
+        <label>Telefon</label>
+        <input type="tel" id="add-telefon" placeholder="+998901234567">
 
-      <label>Rasm</label>
-      <input type="file" id="add-rasm" accept="image/*">
+        <label>Rasm</label>
+        <input type="file" id="add-rasm" accept="image/*">
 
-      <button class="btn-gold" onclick="addEmployee()">Xodimni qo'shish</button>
-      <div class="err" id="add-err"></div>
-      <div class="msg-ok" id="add-ok"></div>
-    </section>
+        <button class="btn-primary" onclick="addEmployee()">Xodimni qo'shish</button>
+        <div class="err" id="add-err"></div>
+        <div class="msg-ok" id="add-ok"></div>
+      </section>
+    </div>
   </div>
 
 </div>
@@ -322,7 +264,7 @@
     <div class="confirm-text" id="confirm-text"></div>
     <div class="confirm-actions">
       <button class="btn-text" id="confirm-no">Yo'q</button>
-      <button class="btn-gold" id="confirm-yes" style="margin-top:0;">Ha</button>
+      <button class="btn-text" id="confirm-yes" style="margin-top:0;">Ha</button>
     </div>
   </div>
 </div>
