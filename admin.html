@@ -63,13 +63,35 @@
   /* ===== Forma elementlari ===== */
   label { display:block; font-size:12.5px; font-weight:600; color: var(--body-c); margin-bottom:6px; margin-top:16px; }
   label:first-of-type { margin-top: 0; }
-  input[type="text"], input[type="password"], input[type="tel"] {
+  input[type="text"], input[type="password"], input[type="tel"], input[type="number"], input[type="date"], input[type="time"] {
     width:100%; padding:13px 14px; font-size:15px; border:1.5px solid var(--border);
     border-radius:12px; font-family:inherit; color:var(--ink);
     transition: border-color .15s, box-shadow .15s;
   }
   input:focus { outline:none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
   input[type="file"] { display: none; }
+
+  .section-heading { font-size: 14px; font-weight: 700; color: var(--ink); margin: 0 0 14px; }
+  .section-heading:not(:first-child) { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--border); }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (min-width: 480px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+  .stat-card { background: var(--bg); border-radius: 14px; padding: 16px; }
+  .stat-label { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .stat-value { font-size: 22px; font-weight: 800; color: var(--ink); }
+
+  .list-row { display:flex; justify-content:space-between; align-items:center; padding: 13px 4px; border-bottom: 1px solid var(--border); }
+  .list-row:last-child { border-bottom: none; }
+  .list-row .list-title { font-size: 14.5px; font-weight: 600; color: var(--ink); }
+  .list-row .list-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+  .btn-row { display:flex; gap:10px; margin-top: 22px; }
+  .btn-row .btn-primary { margin-top: 0; flex: 1; }
+  .btn-outline {
+    padding:14px 18px; background:#fff; color:var(--primary); font-family:inherit;
+    font-weight:700; font-size:15px; border:1.5px solid var(--primary); border-radius:12px; cursor:pointer;
+  }
+  .btn-outline:hover { background: var(--primary-soft); }
   .file-upload-label {
     display:flex; align-items:center; gap:10px; padding:12px 14px;
     border:1.5px dashed var(--border); border-radius:12px; cursor:pointer;
@@ -112,9 +134,9 @@
   .company-name { font-size: 20px; font-weight: 700; color: var(--ink); }
 
   /* ===== Tablar (segment) ===== */
-  .tabs { display:flex; gap:4px; background: var(--bg); border-radius:12px; padding:4px; margin-bottom:24px; }
+  .tabs { display:flex; gap:4px; background: var(--bg); border-radius:12px; padding:4px; margin-bottom:24px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
   .tab {
-    flex:1; text-align:center; padding:10px; border-radius:9px; font-size:13.5px;
+    flex:0 0 auto; white-space:nowrap; text-align:center; padding:10px 16px; border-radius:9px; font-size:13.5px;
     font-weight:600; color: var(--body-c); cursor:pointer; transition: background .15s, color .15s;
   }
   .tab.active { background: var(--primary); color:#fff; box-shadow:0 2px 6px -1px rgba(41,98,255,.5); }
@@ -229,6 +251,10 @@
     <div class="tabs">
       <div class="tab active" id="tab-search" onclick="switchTab('search')">Qidirish</div>
       <div class="tab" id="tab-add" onclick="switchTab('add')">Yangi xodim</div>
+      <div class="tab" id="tab-dashboard" onclick="switchTab('dashboard')">Bosh sahifa</div>
+      <div class="tab" id="tab-shift" onclick="switchTab('shift')">Smenalar</div>
+      <div class="tab" id="tab-hisobot" onclick="switchTab('hisobot')">Hisobotlar</div>
+      <div class="tab" id="tab-settings" onclick="switchTab('settings')">Sozlamalar</div>
     </div>
 
     <div class="card">
@@ -263,6 +289,81 @@
         <div class="err" id="add-err"></div>
         <div class="msg-ok" id="add-ok"></div>
       </section>
+
+      <!-- BOSH SAHIFA (DASHBOARD) -->
+      <section id="section-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Jami xodimlar</div>
+            <div class="stat-value" id="stat-total">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Bugungi davomat</div>
+            <div class="stat-value" id="stat-today">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Kechikkanlar</div>
+            <div class="stat-value" id="stat-late">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Ishda emas</div>
+            <div class="stat-value" id="stat-absent">—</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SMENALAR -->
+      <section id="section-shift">
+        <div class="section-heading">Yangi smena qo'shish</div>
+
+        <label>Smena nomi</label>
+        <input type="text" id="shift-nomi" placeholder="Masalan: Kunduzgi">
+
+        <label>Boshlanish vaqti</label>
+        <input type="time" id="shift-start">
+
+        <label>Tugash vaqti</label>
+        <input type="time" id="shift-end">
+
+        <button class="btn-primary" onclick="addShift()">Smena qo'shish</button>
+
+        <div class="section-heading">Mavjud smenalar</div>
+        <div id="shift-list">
+          <div class="empty-note">Hali smena qo'shilmagan</div>
+        </div>
+      </section>
+
+      <!-- HISOBOTLAR -->
+      <section id="section-hisobot">
+        <label>Boshlanish sanasi</label>
+        <input type="date" id="hisobot-start">
+
+        <label>Tugash sanasi</label>
+        <input type="date" id="hisobot-end">
+
+        <div class="btn-row">
+          <button class="btn-primary" onclick="yuklabOlish('excel')">Excel yuklab olish</button>
+          <button class="btn-outline" onclick="yuklabOlish('pdf')">PDF</button>
+        </div>
+      </section>
+
+      <!-- SOZLAMALAR -->
+      <section id="section-settings">
+        <div class="section-heading">Filiallar</div>
+        <div id="branch-list">
+          <div class="empty-note">Hozircha 1 filial — asosiy manzil</div>
+        </div>
+
+        <div class="section-heading">Maosh va jarima</div>
+
+        <label>Soatlik stavka (so'm)</label>
+        <input type="number" id="settings-rate" placeholder="Masalan: 25000">
+
+        <label>Kech qolish jarimasi (daqiqasiga, so'm)</label>
+        <input type="number" id="settings-penalty" placeholder="Masalan: 500">
+
+        <button class="btn-primary" onclick="saveSettings()">Saqlash</button>
+      </section>
     </div>
   </div>
 
@@ -285,7 +386,10 @@
     login: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-login',
     search: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-search',
     toggle: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-toggle',
-    add: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add'
+    add: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add',
+    addShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add-shift',
+    listShifts: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-list-shifts',
+    deleteShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-delete-shift'
   };
 
   let token = localStorage.getItem('yafa_admin_token');
@@ -313,6 +417,7 @@
     document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
     document.getElementById('section-' + name).classList.add('active');
+    if (name === 'shift') loadShifts();
   }
 
   // ===== Rasm tanlanganda, nomini ko'rsatish =====
@@ -327,6 +432,102 @@
       label.classList.remove('has-file');
     }
   });
+
+  // ===== Smena qo'shish =====
+  async function addShift() {
+    const nomi = document.getElementById('shift-nomi').value.trim();
+    const boshlanish = document.getElementById('shift-start').value;
+    const tugash = document.getElementById('shift-end').value;
+
+    if (!nomi || !boshlanish || !tugash) {
+      alert("Barcha maydonlarni to'ldiring");
+      return;
+    }
+
+    try {
+      const res = await fetch(WEBHOOKS.addShift, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, nomi, boshlanish, tugash })
+      });
+      const data = await res.json();
+
+      if (data.status === 'ok') {
+        document.getElementById('shift-nomi').value = '';
+        document.getElementById('shift-start').value = '';
+        document.getElementById('shift-end').value = '';
+        loadShifts();
+      } else {
+        alert(data.message || 'Xatolik yuz berdi');
+      }
+    } catch (e) {
+      alert('Xatolik: ' + e.message);
+    }
+  }
+
+  // ===== Smenalar ro'yxatini yuklash =====
+  async function loadShifts() {
+    const listDiv = document.getElementById('shift-list');
+    listDiv.innerHTML = '<div class="empty-note">Yuklanmoqda...</div>';
+
+    try {
+      const res = await fetch(WEBHOOKS.listShifts, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+
+      if (data.status !== 'ok') {
+        listDiv.innerHTML = '<div class="empty-note">' + (data.message || 'Xatolik') + '</div>';
+        return;
+      }
+
+      if (!data.shifts || data.shifts.length === 0) {
+        listDiv.innerHTML = '<div class="empty-note">Hali smena qo\'shilmagan</div>';
+        return;
+      }
+
+      listDiv.innerHTML = data.shifts.map(s => `
+        <div class="list-row">
+          <div>
+            <div class="list-title">${s.nomi}</div>
+            <div class="list-sub">${s.boshlanish} – ${s.tugash}</div>
+          </div>
+          <button class="btn-text" onclick="deleteShift(${s.id})">O'chirish</button>
+        </div>
+      `).join('');
+    } catch (e) {
+      listDiv.innerHTML = '<div class="empty-note">Xatolik: ' + e.message + '</div>';
+    }
+  }
+
+  // ===== Smena o'chirish =====
+  async function deleteShift(shiftId) {
+    const tasdiq = await customConfirm("Bu smenani o'chirishni xohlaysizmi?");
+    if (!tasdiq) return;
+
+    try {
+      const res = await fetch(WEBHOOKS.deleteShift, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, shift_id: shiftId })
+      });
+      const data = await res.json();
+
+      if (data.status === 'ok') {
+        loadShifts();
+      } else {
+        alert(data.message || 'Xatolik yuz berdi');
+      }
+    } catch (e) {
+      alert('Xatolik: ' + e.message);
+    }
+  }
+
+  // ===== VAQTINCHA: backend hali ulanmagan bo'limlar =====
+  function yuklabOlish(turi) { alert("Bu funksiya tez kunda qo'shiladi"); }
+  function saveSettings() { alert("Bu funksiya tez kunda qo'shiladi"); }
 
   // ===== Login =====
   async function login() {
