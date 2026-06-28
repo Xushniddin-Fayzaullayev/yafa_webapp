@@ -100,11 +100,11 @@
     #debug-info, #model-status { font-size:11.5px; color: var(--muted); text-align:center; margin:0 0 12px; }
 
     #face-circle {
-      width:230px; height:230px; border-radius:50%; overflow:hidden; border:6px solid var(--border);
+      width:270px; height:270px; border-radius:50%; overflow:hidden; border:6px solid var(--border);
       margin: 8px auto 18px; display:none; position:relative; transition: border-color .25s; background:#000;
     }
     #video { width:100%; height:100%; object-fit:cover; transform: scaleX(-1); }
-    #photo { width:230px; height:230px; object-fit:cover; border-radius:50%; display:none; margin:8px auto 18px; border:6px solid var(--success); }
+    #photo { width:270px; height:270px; object-fit:cover; border-radius:50%; display:none; margin:8px auto 18px; border:6px solid var(--success); }
 
     .result-icon { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin: 0 auto 18px; }
     .result-icon.ok { background: var(--success-soft); }
@@ -356,7 +356,7 @@
         halqaRangi('#16A34A');
         document.getElementById('main-status').textContent = 'Ajoyib! Joyida turing...';
         yaxshiHolatSoni++;
-        if (yaxshiHolatSoni >= 4) { clearInterval(aniqlashIntervalId); rasmOl(); }
+        if (yaxshiHolatSoni >= 7) { clearInterval(aniqlashIntervalId); rasmOl(); }
       } else {
         halqaRangi('#F59E0B'); yaxshiHolatSoni = 0;
         if (!masofaTogri && yuzNisbati <= 0.22) document.getElementById('main-status').textContent = 'Biroz yaqinroq keling';
