@@ -518,6 +518,9 @@
 </div>
 
 <script>
+  // ===== Web-app (index.html) manzili - QR/havola yaratish uchun =====
+  const WEBAPP_URL = 'xxx';
+
   // ===== Webhook manzillari - shu yerga haqiqiy URL'larni qo'ying =====
 const WEBHOOKS = {
     login: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-login',
@@ -761,15 +764,30 @@ const WEBHOOKS = {
       return;
     }
 
-    listDiv.innerHTML = branches.map(b => `
-      <div class="list-row">
-        <div>
-          <div class="list-title">${b.nomi}</div>
-          <div class="list-sub">${b.work_start}–${b.work_end} · radius ${b.radius_m}m</div>
+    listDiv.innerHTML = branches.map(b => {
+      const link = `${WEBAPP_URL}?branch_id=${b.id}`;
+      const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(link)}`;
+      return `
+        <div class="list-row" style="align-items:flex-start;">
+          <div style="display:flex; gap:14px; align-items:center;">
+            <img src="${qrSrc}" width="60" height="60" style="border-radius:8px; border:1px solid var(--border); flex-shrink:0;">
+            <div>
+              <div class="list-title">${b.nomi}</div>
+              <div class="list-sub">${b.work_start}–${b.work_end} · radius ${b.radius_m}m</div>
+              <button class="btn-text" style="font-size:12px; margin-top:6px;" onclick="copyBranchLink('${link}')">Havolani nusxalash</button>
+            </div>
+          </div>
+          <button class="btn-text" onclick="deleteBranch(${b.id})">O'chirish</button>
         </div>
-        <button class="btn-text" onclick="deleteBranch(${b.id})">O'chirish</button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
+  }
+
+  // ===== Filial havolasini nusxalash =====
+  function copyBranchLink(link) {
+    navigator.clipboard.writeText(link)
+      .then(() => alert('Havola nusxalandi:\n' + link))
+      .catch(() => alert('Havola:\n' + link));
   }
 
   // ===== Filial o'chirish =====
