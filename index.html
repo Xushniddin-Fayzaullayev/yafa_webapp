@@ -185,9 +185,9 @@
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.ready(); tg.expand(); }
 
-    // ===== QR/URL parametri: har korxona uchun alohida company_id =====
+    // ===== QR/URL parametri: har filial uchun alohida branch_id =====
     const urlParams = new URLSearchParams(window.location.search);
-    const companyId = parseInt(urlParams.get('company_id')) || 1;
+    const branchId = parseInt(urlParams.get('branch_id')) || 1;
 
     let employeeId = null;
     let amalTuri = 'keldi';
@@ -226,7 +226,7 @@
         const res = await fetch(N8N_WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ employee_code: employeeId, company_id: companyId, type: amalTuri, stage: 'check' })
+          body: JSON.stringify({ employee_code: employeeId, branch_id: branchId, type: amalTuri, stage: 'check' })
         });
         const data = await res.json();
 
@@ -391,7 +391,7 @@
     async function yuborish(blob) {
       const formData = new FormData();
       formData.append('employee_code', employeeId);
-      formData.append('company_id', companyId);
+      formData.append('branch_id', branchId);
       formData.append('type', amalTuri);
       formData.append('stage', 'submit');
       formData.append('lat', lastLat);
