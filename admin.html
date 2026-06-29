@@ -519,19 +519,20 @@
 
 <script>
   // ===== Webhook manzillari - shu yerga haqiqiy URL'larni qo'ying =====
- const WEBHOOKS = {
+const WEBHOOKS = {
     login: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-login',
     search: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-search',
     toggle: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-toggle',
     add: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add',
     addShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add-shift',
     listShifts: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-list-shifts',
-    deleteShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-delete-shift'
+    deleteShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-delete-shift',
+    updateShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-update-shift',
     addBranch: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add-branch',
     listBranches: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-list-branches',
     deleteBranch: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-delete-branch',
     updateBranch: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-update-branch'
-  };
+};
 
   let token = localStorage.getItem('yafa_admin_token');
   let companyName = localStorage.getItem('yafa_admin_company');
