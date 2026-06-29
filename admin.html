@@ -80,11 +80,18 @@
   input:focus { outline:none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
   input[type="file"] { display: none; }
 
+  select {
+    width:100%; padding:13px 14px; font-size:15px; border:1.5px solid var(--border);
+    border-radius:12px; font-family:inherit; color:var(--ink); background:#fff; cursor:pointer;
+    margin-bottom:16px; transition: border-color .15s, box-shadow .15s;
+  }
+  select:focus { outline:none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
+
   .time-select { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
   .time-select select {
     flex:1; padding:13px 10px; font-size:15px; border:1.5px solid var(--border); border-radius:12px;
     font-family:inherit; color:var(--ink); background:#fff; cursor:pointer; text-align:center;
-    transition: border-color .15s, box-shadow .15s;
+    margin-bottom:0; transition: border-color .15s, box-shadow .15s;
   }
   .time-select select:focus { outline:none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
   .time-select span { color: var(--muted); font-weight:700; font-size:16px; }
@@ -172,12 +179,13 @@
 
   /* ===== Natija qatorlari ===== */
   .result-row {
-    display: grid; grid-template-columns: 80px 1fr 90px 130px;
+    display: grid; grid-template-columns: 70px 1fr 150px 80px 120px;
     align-items: center; gap: 12px; padding: 14px 4px; border-bottom: 1px solid var(--border);
   }
   .result-row:last-child { border-bottom: none; }
   .result-row .kod { font-size: 12.5px; color: var(--muted); font-weight: 500; }
   .result-row .ism { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .result-row .shift-select { margin-bottom: 0; padding: 8px 10px; font-size: 13px; }
 
   .stamp {
     display: inline-block; padding: 4px 11px; border-radius: 999px;
@@ -227,14 +235,14 @@
   @media (max-width: 600px) {
     .top-row { flex-wrap: wrap; gap: 10px; }
     .result-row {
-      grid-template-columns: 1fr auto;
-      grid-template-areas: "ism holat" "kod amal";
-      row-gap: 6px; column-gap: 10px;
+      display: flex; flex-direction: column; align-items: stretch; gap: 8px;
     }
-    .result-row .ism { grid-area: ism; }
-    .result-row .kod { grid-area: kod; }
-    .result-row .holat { grid-area: holat; justify-self: end; }
-    .result-row .amal { grid-area: amal; justify-self: end; }
+    .result-row .shift-select { width: 100%; order: 3; }
+    .result-row .kod { order: 1; }
+    .result-row .ism { order: 2; }
+    .result-row .holat { order: 4; }
+    .result-row .amal { order: 5; }
+    .result-row .holat, .result-row .amal { display:flex; justify-content:space-between; align-items:center; }
     .search-row { flex-wrap: wrap; }
   }
 </style>
@@ -321,6 +329,11 @@
 
           <label>Telefon</label>
           <input type="tel" id="add-telefon" placeholder="+998901234567">
+
+          <label>Smena</label>
+          <select id="add-shift-select">
+            <option value="">Tanlanmagan</option>
+          </select>
 
           <label>Rasm</label>
           <input type="file" id="add-rasm" accept="image/*">
@@ -453,14 +466,15 @@
 
 <script>
   // ===== Webhook manzillari - shu yerga haqiqiy URL'larni qo'ying =====
- const WEBHOOKS = {
+  const WEBHOOKS = {
     login: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-login',
     search: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-search',
     toggle: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-toggle',
     add: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add',
     addShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add-shift',
     listShifts: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-list-shifts',
-    deleteShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-delete-shift'
+    deleteShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-delete-shift',
+    updateShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-update-shift'
   };
 
   let token = localStorage.getItem('yafa_admin_token');
@@ -489,6 +503,30 @@
     document.getElementById('tab-' + name).classList.add('active');
     document.getElementById('section-' + name).classList.add('active');
     if (name === 'shift') loadShifts();
+    if (name === 'add') loadShiftOptions();
+  }
+
+  // ===== Smenalar ro'yxatini olish (boshqa joylarda qayta ishlatiladi) =====
+  async function fetchShiftsList() {
+    try {
+      const res = await fetch(WEBHOOKS.listShifts, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      return (data.status === 'ok' && data.shifts) ? data.shifts : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // ===== Smenalarni "Yangi xodim" dropdown'iga yuklash =====
+  async function loadShiftOptions() {
+    const select = document.getElementById('add-shift-select');
+    const shifts = await fetchShiftsList();
+    select.innerHTML = '<option value="">Tanlanmagan</option>' +
+      shifts.map(s => `<option value="${s.id}">${s.nomi} (${s.boshlanish}–${s.tugash})</option>`).join('');
   }
 
   // ===== Rasm tanlanganda, nomini ko'rsatish =====
@@ -639,12 +677,14 @@
     resultsDiv.innerHTML = '<div class="empty-note">Qidirilmoqda...</div>';
 
     try {
-      const res = await fetch(WEBHOOKS.search, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, qidiruv })
-      });
-      const data = await res.json();
+      const [data, shifts] = await Promise.all([
+        fetch(WEBHOOKS.search, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, qidiruv })
+        }).then(r => r.json()),
+        fetchShiftsList()
+      ]);
 
       if (data.status !== 'ok') {
         resultsDiv.innerHTML = '<div class="empty-note">' + (data.message || 'Xatolik') + '</div>';
@@ -656,6 +696,9 @@
         return;
       }
 
+      const shiftOptionsHtml = (selectedId) => '<option value="">Belgilanmagan</option>' +
+        shifts.map(s => `<option value="${s.id}" ${String(s.id) === String(selectedId) ? 'selected' : ''}>${s.nomi}</option>`).join('');
+
       resultsDiv.innerHTML = data.results.map(emp => {
         const stampClass = emp.is_active ? 'faol' : 'nofaol';
         const stampText = emp.is_active ? 'Faol' : 'Nofaol';
@@ -665,6 +708,7 @@
           <div class="result-row">
             <div class="kod">${emp.employee_code || '—'}</div>
             <div class="ism">${emp.full_name}</div>
+            <select class="shift-select" onchange="updateEmployeeShift(${emp.id}, this.value)">${shiftOptionsHtml(emp.shift_id)}</select>
             <div class="holat"><span class="stamp ${stampClass}">${stampText}</span></div>
             <div class="amal"><button class="btn-text" onclick="toggleEmployee(${emp.id}, '${actionValue}', '${emp.full_name.replace(/'/g, "\\'")}')">${actionText}</button></div>
           </div>
@@ -672,6 +716,25 @@
       }).join('');
     } catch (e) {
       resultsDiv.innerHTML = '<div class="empty-note">Xatolik: ' + e.message + '</div>';
+    }
+  }
+
+  // ===== Xodimning smenasini o'zgartirish =====
+  async function updateEmployeeShift(employeeId, shiftId) {
+    try {
+      const res = await fetch(WEBHOOKS.updateShift, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, employee_id: employeeId, shift_id: shiftId })
+      });
+      const data = await res.json();
+      if (data.status !== 'ok') {
+        alert(data.message || 'Xatolik yuz berdi');
+        doSearch();
+      }
+    } catch (e) {
+      alert('Xatolik: ' + e.message);
+      doSearch();
     }
   }
 
@@ -742,6 +805,7 @@
     formData.append('ism', ism);
     formData.append('familiya', familiya);
     formData.append('telefon', telefon);
+    formData.append('shift_id', document.getElementById('add-shift-select').value);
     formData.append('rasm', rasmFile);
 
     try {
@@ -754,6 +818,7 @@
         document.getElementById('add-familiya').value = '';
         document.getElementById('add-telefon').value = '';
         document.getElementById('add-rasm').value = '';
+        document.getElementById('add-shift-select').value = '';
         document.getElementById('file-upload-text').textContent = 'Rasm tanlang';
         document.getElementById('file-upload-label').classList.remove('has-file');
       } else {
