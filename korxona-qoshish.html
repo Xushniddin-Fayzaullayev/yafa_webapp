@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yafa — Korxona qo'shish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #2962FF;
+    --primary-dark: #1E4FD6;
+    --primary-soft: #EAF1FF;
+    --ink: #0F172A;
+    --body-c: #475569;
+    --muted: #94A3B8;
+    --bg: #F1F5F9;
+    --card: #FFFFFF;
+    --border: #E2E8F0;
+    --success: #16A34A;
+    --success-soft: #DCFCE7;
+    --danger: #DC2626;
+    --danger-soft: #FEE2E2;
+    --radius-lg: 20px;
+    --shadow: 0 12px 28px -10px rgba(15,23,42,.15), 0 2px 8px -2px rgba(15,23,42,.06);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', -apple-system, sans-serif;
+    min-height: 100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding: 40px 16px;
+  }
+  .brand { display:flex; align-items:center; gap:10px; margin-bottom: 28px; }
+  .brand-mark {
+    width: 36px; height:36px; border-radius: 10px; background: var(--primary);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    box-shadow: 0 4px 10px -2px rgba(41,98,255,.5);
+  }
+  .brand-mark svg { width:18px; height:18px; }
+  .brand-name { font-weight:800; font-size:18px; color:var(--ink); letter-spacing:-.2px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow); padding: 32px 28px; max-width: 460px; width:100%;
+  }
+  .card-icon {
+    width:52px; height:52px; border-radius:14px; background: var(--primary-soft);
+    display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+  }
+  .card-icon svg { width:24px; height:24px; color: var(--primary); }
+  h1 { font-size:19px; font-weight:700; color:var(--ink); margin:0 0 4px; }
+  .subtitle { font-size:13.5px; color: var(--muted); margin:0 0 22px; line-height:1.4; }
+
+  label { display:block; font-size:12.5px; font-weight:600; color: var(--body-c); margin-bottom:6px; margin-top:16px; }
+  label:first-of-type { margin-top: 0; }
+  .row-2 { display:flex; gap:12px; }
+  .row-2 > div { flex:1; }
+
+  input[type="text"], input[type="password"], input[type="number"] {
+    width:100%; padding:13px 14px; font-size:15px; border:1.5px solid var(--border);
+    border-radius:12px; font-family:inherit; color:var(--ink);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus { outline:none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
+
+  select {
+    width:100%; padding:13px 14px; font-size:15px; border:1.5px solid var(--border);
+    border-radius:12px; font-family:inherit; color:var(--ink); background:#fff; cursor:pointer;
+  }
+  select:focus { outline:none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
+
+  .time-select { display:flex; align-items:center; gap:10px; }
+  .time-select select { flex:1; text-align:center; }
+  .time-select span { color: var(--muted); font-weight:700; font-size:16px; }
+
+  .section-heading {
+    font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px;
+    margin: 26px 0 4px; padding-top: 18px; border-top: 1px solid var(--border);
+  }
+  .section-heading:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+
+  .btn-primary {
+    width:100%; padding:14px; background: var(--primary); color:#fff; font-family:inherit;
+    font-weight:700; font-size:15px; border:none; border-radius:12px; cursor:pointer;
+    margin-top:26px; transition: background .15s, transform .1s;
+  }
+  .btn-primary:active { transform: scale(.98); }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-primary:disabled { opacity:.55; cursor:not-allowed; }
+
+  .err { color: var(--danger); font-size:13px; margin-top:14px; min-height:16px; font-weight:500; }
+  .msg-ok { color: var(--success); font-size:13.5px; margin-top:14px; font-weight:600; background:var(--success-soft); padding:12px 14px; border-radius:10px; }
+</style>
+</head>
+<body>
+
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="brand-name">Yafa</div>
+  </div>
+
+  <div class="card">
+    <div class="card-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1"/></svg>
+    </div>
+    <h1>Yangi korxona qo'shish</h1>
+    <p class="subtitle">Faqat super-admin uchun — yangi mijoz (korxona) ro'yxatga olinadi</p>
+
+    <label>Maxfiy kalit</label>
+    <input type="password" id="master-key" placeholder="Super-admin kaliti">
+
+    <div class="section-heading">Korxona ma'lumotlari</div>
+
+    <label>Korxona nomi</label>
+    <input type="text" id="korxona-nomi" placeholder="Masalan: Tezkor Servis MCHJ">
+
+    <label>Manzil koordinatasi (Google Maps'dan)</label>
+    <div class="row-2">
+      <div>
+        <input type="number" id="korxona-lat" placeholder="Latitude" step="0.000001">
+      </div>
+      <div>
+        <input type="number" id="korxona-lng" placeholder="Longitude" step="0.000001">
+      </div>
+    </div>
+
+    <label>Ruxsat etilgan radius (metr)</label>
+    <input type="number" id="korxona-radius" placeholder="Masalan: 100" value="100">
+
+    <label>Ish boshlanish vaqti</label>
+    <div class="time-select">
+      <select id="work-start-hour">
+        <option>00</option><option>01</option><option>02</option><option>03</option>
+        <option>04</option><option>05</option><option>06</option><option>07</option>
+        <option>08</option><option selected>09</option><option>10</option><option>11</option>
+        <option>12</option><option>13</option><option>14</option><option>15</option>
+        <option>16</option><option>17</option><option>18</option><option>19</option>
+        <option>20</option><option>21</option><option>22</option><option>23</option>
+      </select>
+      <span>:</span>
+      <select id="work-start-min">
+        <option selected>00</option><option>15</option><option>30</option><option>45</option>
+      </select>
+    </div>
+
+    <label>Ish tugash vaqti</label>
+    <div class="time-select">
+      <select id="work-end-hour">
+        <option>00</option><option>01</option><option>02</option><option>03</option>
+        <option>04</option><option>05</option><option>06</option><option>07</option>
+        <option>08</option><option>09</option><option>10</option><option>11</option>
+        <option>12</option><option>13</option><option>14</option><option>15</option>
+        <option>16</option><option>17</option><option selected>18</option><option>19</option>
+        <option>20</option><option>21</option><option>22</option><option>23</option>
+      </select>
+      <span>:</span>
+      <select id="work-end-min">
+        <option selected>00</option><option>15</option><option>30</option><option>45</option>
+      </select>
+    </div>
+
+    <div class="section-heading">Admin hisobi (mijoz uchun)</div>
+
+    <label>Admin login</label>
+    <input type="text" id="admin-login" placeholder="Masalan: tezkor_admin">
+
+    <label>Admin parol</label>
+    <input type="password" id="admin-parol" placeholder="Vaqtinchalik parol">
+
+    <button class="btn-primary" id="submit-btn" onclick="addCompany()">Korxona qo'shish</button>
+    <div class="err" id="form-err"></div>
+    <div class="msg-ok" id="form-ok" style="display:none;"></div>
+  </div>
+
+  <script>
+    // ===== Webhook manzili - shu yerga haqiqiy URL'ni qo'ying =====
+    const WEBHOOK_URL = 'xxx';
+
+    async function addCompany() {
+      const masterKey = document.getElementById('master-key').value;
+      const nomi = document.getElementById('korxona-nomi').value.trim();
+      const lat = document.getElementById('korxona-lat').value;
+      const lng = document.getElementById('korxona-lng').value;
+      const radius = document.getElementById('korxona-radius').value;
+      const workStart = document.getElementById('work-start-hour').value + ':' + document.getElementById('work-start-min').value;
+      const workEnd = document.getElementById('work-end-hour').value + ':' + document.getElementById('work-end-min').value;
+      const adminLogin = document.getElementById('admin-login').value.trim();
+      const adminParol = document.getElementById('admin-parol').value;
+
+      const err = document.getElementById('form-err');
+      const ok = document.getElementById('form-ok');
+      const btn = document.getElementById('submit-btn');
+      err.textContent = '';
+      ok.style.display = 'none';
+
+      if (!masterKey || !nomi || !lat || !lng || !radius || !adminLogin || !adminParol) {
+        err.textContent = "Barcha maydonlarni to'ldiring";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Yuborilmoqda...';
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            master_key: masterKey,
+            nomi, lat, lng, radius,
+            work_start: workStart, work_end: workEnd,
+            admin_login: adminLogin, admin_parol: adminParol
+          })
+        });
+        const data = await res.json();
+
+        if (data.status === 'ok') {
+          ok.style.display = 'block';
+          ok.textContent = `Qo'shildi! Korxona ID: ${data.company_id} — "${nomi}"`;
+          document.getElementById('korxona-nomi').value = '';
+          document.getElementById('korxona-lat').value = '';
+          document.getElementById('korxona-lng').value = '';
+          document.getElementById('admin-login').value = '';
+          document.getElementById('admin-parol').value = '';
+        } else {
+          err.textContent = data.message || 'Xatolik yuz berdi';
+        }
+      } catch (e) {
+        err.textContent = 'Ulanishda xatolik: ' + e.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Korxona qo'shish";
+      }
+    }
+  </script>
+
+</body>
+</html>
