@@ -179,8 +179,8 @@
 
   /* ===== Natija qatorlari ===== */
   .result-row {
-    display: grid; grid-template-columns: 70px 1fr 150px 80px 120px;
-    align-items: center; gap: 12px; padding: 14px 4px; border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: 70px 1fr 130px 130px 80px 120px;
+    align-items: center; gap: 10px; padding: 14px 4px; border-bottom: 1px solid var(--border);
   }
   .result-row:last-child { border-bottom: none; }
   .result-row .kod { font-size: 12.5px; color: var(--muted); font-weight: 500; }
@@ -335,6 +335,11 @@
             <option value="">Tanlanmagan</option>
           </select>
 
+          <label>Filial</label>
+          <select id="add-branch-select">
+            <option value="">Tanlanmagan</option>
+          </select>
+
           <label>Rasm</label>
           <input type="file" id="add-rasm" accept="image/*">
           <label for="add-rasm" class="file-upload-label" id="file-upload-label">
@@ -432,9 +437,57 @@
 
         <!-- SOZLAMALAR -->
         <section id="section-settings">
-          <div class="section-heading">Filiallar</div>
+          <div class="section-heading">Yangi filial qo'shish</div>
+
+          <label>Filial nomi</label>
+          <input type="text" id="branch-nomi" placeholder="Masalan: Filial-2">
+
+          <label>Latitude</label>
+          <input type="number" id="branch-lat" step="0.000001" placeholder="41.311081">
+
+          <label>Longitude</label>
+          <input type="number" id="branch-lng" step="0.000001" placeholder="69.240562">
+
+          <label>Radius (metr)</label>
+          <input type="number" id="branch-radius" placeholder="100" value="100">
+
+          <label>Ish boshlanish vaqti</label>
+          <div class="time-select">
+            <select id="branch-start-hour">
+              <option>00</option><option>01</option><option>02</option><option>03</option>
+              <option>04</option><option>05</option><option>06</option><option>07</option>
+              <option>08</option><option selected>09</option><option>10</option><option>11</option>
+              <option>12</option><option>13</option><option>14</option><option>15</option>
+              <option>16</option><option>17</option><option>18</option><option>19</option>
+              <option>20</option><option>21</option><option>22</option><option>23</option>
+            </select>
+            <span>:</span>
+            <select id="branch-start-min">
+              <option selected>00</option><option>15</option><option>30</option><option>45</option>
+            </select>
+          </div>
+
+          <label>Ish tugash vaqti</label>
+          <div class="time-select">
+            <select id="branch-end-hour">
+              <option>00</option><option>01</option><option>02</option><option>03</option>
+              <option>04</option><option>05</option><option>06</option><option>07</option>
+              <option>08</option><option>09</option><option>10</option><option>11</option>
+              <option>12</option><option>13</option><option>14</option><option>15</option>
+              <option>16</option><option>17</option><option selected>18</option><option>19</option>
+              <option>20</option><option>21</option><option>22</option><option>23</option>
+            </select>
+            <span>:</span>
+            <select id="branch-end-min">
+              <option selected>00</option><option>15</option><option>30</option><option>45</option>
+            </select>
+          </div>
+
+          <button class="btn-primary" onclick="addBranch()">Filial qo'shish</button>
+
+          <div class="section-heading">Mavjud filiallar</div>
           <div id="branch-list">
-            <div class="empty-note">Hozircha 1 filial — asosiy manzil</div>
+            <div class="empty-note">Yuklanmoqda...</div>
           </div>
 
           <div class="section-heading">Maosh va jarima</div>
@@ -466,15 +519,18 @@
 
 <script>
   // ===== Webhook manzillari - shu yerga haqiqiy URL'larni qo'ying =====
-  const WEBHOOKS = {
+ const WEBHOOKS = {
     login: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-login',
     search: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-search',
     toggle: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-toggle',
     add: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add',
     addShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add-shift',
     listShifts: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-list-shifts',
-    deleteShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-delete-shift',
-    updateShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-update-shift'
+    deleteShift: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-delete-shift'
+    addBranch: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add-branch',
+    listBranches: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-list-branches',
+    deleteBranch: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-delete-branch',
+    updateBranch: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-update-branch'
   };
 
   let token = localStorage.getItem('yafa_admin_token');
@@ -503,7 +559,8 @@
     document.getElementById('tab-' + name).classList.add('active');
     document.getElementById('section-' + name).classList.add('active');
     if (name === 'shift') loadShifts();
-    if (name === 'add') loadShiftOptions();
+    if (name === 'add') { loadShiftOptions(); loadBranchOptions(); }
+    if (name === 'settings') loadBranches();
   }
 
   // ===== Smenalar ro'yxatini olish (boshqa joylarda qayta ishlatiladi) =====
@@ -527,6 +584,29 @@
     const shifts = await fetchShiftsList();
     select.innerHTML = '<option value="">Tanlanmagan</option>' +
       shifts.map(s => `<option value="${s.id}">${s.nomi} (${s.boshlanish}–${s.tugash})</option>`).join('');
+  }
+
+  // ===== Filiallar ro'yxatini olish (boshqa joylarda qayta ishlatiladi) =====
+  async function fetchBranchesList() {
+    try {
+      const res = await fetch(WEBHOOKS.listBranches, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      return (data.status === 'ok' && data.branches) ? data.branches : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // ===== Filiallarni "Yangi xodim" dropdown'iga yuklash =====
+  async function loadBranchOptions() {
+    const select = document.getElementById('add-branch-select');
+    const branches = await fetchBranchesList();
+    select.innerHTML = '<option value="">Tanlanmagan</option>' +
+      branches.map(b => `<option value="${b.id}">${b.nomi}</option>`).join('');
   }
 
   // ===== Rasm tanlanganda, nomini ko'rsatish =====
@@ -632,6 +712,88 @@
     }
   }
 
+  // ===== Filial qo'shish =====
+  async function addBranch() {
+    const nomi = document.getElementById('branch-nomi').value.trim();
+    const lat = document.getElementById('branch-lat').value;
+    const lng = document.getElementById('branch-lng').value;
+    const radius = document.getElementById('branch-radius').value;
+    const work_start = document.getElementById('branch-start-hour').value + ':' + document.getElementById('branch-start-min').value;
+    const work_end = document.getElementById('branch-end-hour').value + ':' + document.getElementById('branch-end-min').value;
+
+    if (!nomi || !lat || !lng || !radius) {
+      alert("Nomi, Latitude, Longitude va Radius'ni to'ldiring");
+      return;
+    }
+
+    try {
+      const res = await fetch(WEBHOOKS.addBranch, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, nomi, lat, lng, radius, work_start, work_end })
+      });
+      const data = await res.json();
+
+      if (data.status === 'ok') {
+        document.getElementById('branch-nomi').value = '';
+        document.getElementById('branch-lat').value = '';
+        document.getElementById('branch-lng').value = '';
+        document.getElementById('branch-radius').value = '100';
+        loadBranches();
+      } else {
+        alert(data.message || 'Xatolik yuz berdi');
+      }
+    } catch (e) {
+      alert('Xatolik: ' + e.message);
+    }
+  }
+
+  // ===== Filiallar ro'yxatini yuklash ("Sozlamalar" tabida) =====
+  async function loadBranches() {
+    const listDiv = document.getElementById('branch-list');
+    listDiv.innerHTML = '<div class="empty-note">Yuklanmoqda...</div>';
+
+    const branches = await fetchBranchesList();
+
+    if (branches.length === 0) {
+      listDiv.innerHTML = '<div class="empty-note">Hali filial qo\'shilmagan</div>';
+      return;
+    }
+
+    listDiv.innerHTML = branches.map(b => `
+      <div class="list-row">
+        <div>
+          <div class="list-title">${b.nomi}</div>
+          <div class="list-sub">${b.work_start}–${b.work_end} · radius ${b.radius_m}m</div>
+        </div>
+        <button class="btn-text" onclick="deleteBranch(${b.id})">O'chirish</button>
+      </div>
+    `).join('');
+  }
+
+  // ===== Filial o'chirish =====
+  async function deleteBranch(branchId) {
+    const tasdiq = await customConfirm("Bu filialni o'chirishni xohlaysizmi?");
+    if (!tasdiq) return;
+
+    try {
+      const res = await fetch(WEBHOOKS.deleteBranch, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, branch_id: branchId })
+      });
+      const data = await res.json();
+
+      if (data.status === 'ok') {
+        loadBranches();
+      } else {
+        alert(data.message || 'Xatolik yuz berdi');
+      }
+    } catch (e) {
+      alert('Xatolik: ' + e.message);
+    }
+  }
+
   // ===== VAQTINCHA: backend hali ulanmagan bo'limlar =====
   function yuklabOlish(turi) { alert("Bu funksiya tez kunda qo'shiladi"); }
   function saveSettings() { alert("Bu funksiya tez kunda qo'shiladi"); }
@@ -677,13 +839,14 @@
     resultsDiv.innerHTML = '<div class="empty-note">Qidirilmoqda...</div>';
 
     try {
-      const [data, shifts] = await Promise.all([
+      const [data, shifts, branches] = await Promise.all([
         fetch(WEBHOOKS.search, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token, qidiruv })
         }).then(r => r.json()),
-        fetchShiftsList()
+        fetchShiftsList(),
+        fetchBranchesList()
       ]);
 
       if (data.status !== 'ok') {
@@ -699,6 +862,9 @@
       const shiftOptionsHtml = (selectedId) => '<option value="">Belgilanmagan</option>' +
         shifts.map(s => `<option value="${s.id}" ${String(s.id) === String(selectedId) ? 'selected' : ''}>${s.nomi}</option>`).join('');
 
+      const branchOptionsHtml = (selectedId) => '<option value="">Belgilanmagan</option>' +
+        branches.map(b => `<option value="${b.id}" ${String(b.id) === String(selectedId) ? 'selected' : ''}>${b.nomi}</option>`).join('');
+
       resultsDiv.innerHTML = data.results.map(emp => {
         const stampClass = emp.is_active ? 'faol' : 'nofaol';
         const stampText = emp.is_active ? 'Faol' : 'Nofaol';
@@ -709,6 +875,7 @@
             <div class="kod">${emp.employee_code || '—'}</div>
             <div class="ism">${emp.full_name}</div>
             <select class="shift-select" onchange="updateEmployeeShift(${emp.id}, this.value)">${shiftOptionsHtml(emp.shift_id)}</select>
+            <select class="shift-select" onchange="updateEmployeeBranch(${emp.id}, this.value)">${branchOptionsHtml(emp.branch_id)}</select>
             <div class="holat"><span class="stamp ${stampClass}">${stampText}</span></div>
             <div class="amal"><button class="btn-text" onclick="toggleEmployee(${emp.id}, '${actionValue}', '${emp.full_name.replace(/'/g, "\\'")}')">${actionText}</button></div>
           </div>
@@ -726,6 +893,25 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, employee_id: employeeId, shift_id: shiftId })
+      });
+      const data = await res.json();
+      if (data.status !== 'ok') {
+        alert(data.message || 'Xatolik yuz berdi');
+        doSearch();
+      }
+    } catch (e) {
+      alert('Xatolik: ' + e.message);
+      doSearch();
+    }
+  }
+
+  // ===== Xodimning filialini o'zgartirish =====
+  async function updateEmployeeBranch(employeeId, branchId) {
+    try {
+      const res = await fetch(WEBHOOKS.updateBranch, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, employee_id: employeeId, branch_id: branchId })
       });
       const data = await res.json();
       if (data.status !== 'ok') {
@@ -806,6 +992,7 @@
     formData.append('familiya', familiya);
     formData.append('telefon', telefon);
     formData.append('shift_id', document.getElementById('add-shift-select').value);
+    formData.append('branch_id', document.getElementById('add-branch-select').value);
     formData.append('rasm', rasmFile);
 
     try {
@@ -819,6 +1006,7 @@
         document.getElementById('add-telefon').value = '';
         document.getElementById('add-rasm').value = '';
         document.getElementById('add-shift-select').value = '';
+        document.getElementById('add-branch-select').value = '';
         document.getElementById('file-upload-text').textContent = 'Rasm tanlang';
         document.getElementById('file-upload-label').classList.remove('has-file');
       } else {
