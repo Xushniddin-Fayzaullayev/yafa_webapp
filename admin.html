@@ -46,11 +46,11 @@
   /* ===== Brend ===== */
   .brand { display:flex; align-items:center; gap:10px; margin-bottom: 28px; }
   .brand-mark {
-    width: 36px; height:36px; border-radius: 10px; background: var(--primary);
-    display:flex; align-items:center; justify-content:center; flex-shrink:0;
-    box-shadow: 0 4px 10px -2px rgba(41,98,255,.5);
+    width: 36px; height:36px; border-radius: 9px; overflow:hidden; flex-shrink:0;
+    box-shadow: 0 4px 10px -2px rgba(41,98,255,.35);
   }
-  .brand-mark svg { width:18px; height:18px; }
+  .brand-mark img { width:100%; height:100%; object-fit:cover; display:block; }
+  .login-page .brand-mark { width:56px; height:56px; border-radius: 14px; box-shadow: 0 8px 20px -4px rgba(41,98,255,.4); }
   .brand-name { font-weight:800; font-size:18px; color:var(--ink); letter-spacing:-.2px; }
 
   /* ===== Kartochka (umumiy) ===== */
@@ -252,7 +252,7 @@
 <div id="login-screen" class="login-page">
   <div class="brand">
     <div class="brand-mark">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <img src="assets/logo.svg" alt="Yafa">
     </div>
     <div class="brand-name">Yafa</div>
   </div>
@@ -282,7 +282,7 @@
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-mark">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <img src="assets/logo.svg" alt="Yafa">
         </div>
         <div class="brand-name">Yafa</div>
       </div>
@@ -545,6 +545,7 @@
     getSettings: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-get-settings',
     saveSettings: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-save-settings'
 };
+
   let token = localStorage.getItem('yafa_admin_token');
   let companyName = localStorage.getItem('yafa_admin_company');
 
