@@ -490,6 +490,12 @@
             <div class="empty-note">Yuklanmoqda...</div>
           </div>
 
+          <div class="section-heading">Davomat qoidasi</div>
+
+          <label>Kechikishga ruxsat etilgan vaqt (daqiqa)</label>
+          <input type="number" id="settings-late-threshold" placeholder="10">
+          <button class="btn-primary" onclick="saveLateThreshold()">Saqlash</button>
+
           <div class="section-heading">Maosh va jarima</div>
 
           <label>Soatlik stavka (so'm)</label>
@@ -498,7 +504,7 @@
           <label>Kech qolish jarimasi (daqiqasiga, so'm)</label>
           <input type="number" id="settings-penalty" placeholder="Masalan: 500">
 
-          <button class="btn-primary" onclick="saveSettings()">Saqlash</button>
+          <button class="btn-primary" onclick="yuklabOlish('maosh')">Saqlash</button>
         </section>
       </div>
     </main>
@@ -522,7 +528,7 @@
   const WEBAPP_URL = 'xxx';
 
   // ===== Webhook manzillari - shu yerga haqiqiy URL'larni qo'ying =====
-const WEBHOOKS = {
+ const WEBHOOKS = {
     login: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-login',
     search: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-search',
     toggle: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-toggle',
@@ -534,9 +540,11 @@ const WEBHOOKS = {
     addBranch: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-add-branch',
     listBranches: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-list-branches',
     deleteBranch: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-delete-branch',
-    updateBranch: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-update-branch'
+    updateBranch: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-update-branch',
+    dashboard: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-dashboard',
+    getSettings: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-get-settings',
+    saveSettings: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-save-settings'
 };
-
   let token = localStorage.getItem('yafa_admin_token');
   let companyName = localStorage.getItem('yafa_admin_company');
 
@@ -564,7 +572,8 @@ const WEBHOOKS = {
     document.getElementById('section-' + name).classList.add('active');
     if (name === 'shift') loadShifts();
     if (name === 'add') { loadShiftOptions(); loadBranchOptions(); }
-    if (name === 'settings') loadBranches();
+    if (name === 'settings') { loadBranches(); loadLateThreshold(); }
+    if (name === 'dashboard') loadDashboard();
   }
 
   // ===== Smenalar ro'yxatini olish (boshqa joylarda qayta ishlatiladi) =====
@@ -716,6 +725,71 @@ const WEBHOOKS = {
     }
   }
 
+  // ===== Dashboard statistikasini yuklash =====
+  async function loadDashboard() {
+    const ids = ['stat-total', 'stat-today', 'stat-late', 'stat-absent'];
+    ids.forEach(id => document.getElementById(id).textContent = '...');
+
+    try {
+      const res = await fetch(WEBHOOKS.dashboard, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+
+      if (data.status === 'ok') {
+        document.getElementById('stat-total').textContent = data.jami_xodimlar;
+        document.getElementById('stat-today').textContent = data.bugungi_davomat;
+        document.getElementById('stat-late').textContent = data.kechikkanlar;
+        document.getElementById('stat-absent').textContent = data.ishda_emas;
+      } else {
+        ids.forEach(id => document.getElementById(id).textContent = '—');
+      }
+    } catch (e) {
+      ids.forEach(id => document.getElementById(id).textContent = '—');
+    }
+  }
+
+  // ===== Kechikish chegarasini yuklash =====
+  async function loadLateThreshold() {
+    try {
+      const res = await fetch(WEBHOOKS.getSettings, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        document.getElementById('settings-late-threshold').value = data.late_threshold_min;
+      }
+    } catch (e) {}
+  }
+
+  // ===== Kechikish chegarasini saqlash =====
+  async function saveLateThreshold() {
+    const value = document.getElementById('settings-late-threshold').value;
+    if (!value) {
+      alert("Daqiqa qiymatini kiriting");
+      return;
+    }
+    try {
+      const res = await fetch(WEBHOOKS.saveSettings, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, late_threshold_min: value })
+      });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        alert("Saqlandi: " + data.late_threshold_min + " daqiqa");
+      } else {
+        alert(data.message || 'Xatolik yuz berdi');
+      }
+    } catch (e) {
+      alert('Xatolik: ' + e.message);
+    }
+  }
+
   // ===== Filial qo'shish =====
   async function addBranch() {
     const nomi = document.getElementById('branch-nomi').value.trim();
@@ -815,7 +889,6 @@ const WEBHOOKS = {
 
   // ===== VAQTINCHA: backend hali ulanmagan bo'limlar =====
   function yuklabOlish(turi) { alert("Bu funksiya tez kunda qo'shiladi"); }
-  function saveSettings() { alert("Bu funksiya tez kunda qo'shiladi"); }
 
   // ===== Login =====
   async function login() {
