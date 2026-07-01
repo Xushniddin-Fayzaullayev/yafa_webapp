@@ -430,8 +430,8 @@
           <input type="date" id="hisobot-end">
 
           <div class="btn-row">
-            <button class="btn-primary" onclick="yuklabOlish('excel')">Excel yuklab olish</button>
-            <button class="btn-outline" onclick="yuklabOlish('pdf')">PDF</button>
+            <button class="btn-primary" onclick="yuklabOlish('davomat')">Davomat hisoboti</button>
+            <button class="btn-outline" onclick="yuklabOlish('late')">Kechikish hisoboti</button>
           </div>
         </section>
 
@@ -547,8 +547,10 @@ const WEBHOOKS = {
     updateBranch: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-update-branch',
     dashboard: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-dashboard',
     getSettings: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-get-settings',
-    saveSettings: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-save-settings'
-};
+    saveSettings: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-save-settings',
+    reportAttendance: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-report-attendance',
+    reportLate: 'xxx'
+  };
 
   let token = localStorage.getItem('yafa_admin_token');
   let companyName = localStorage.getItem('yafa_admin_company');
@@ -894,8 +896,41 @@ const WEBHOOKS = {
     }
   }
 
-  // ===== VAQTINCHA: backend hali ulanmagan bo'limlar =====
-  function yuklabOlish(turi) { alert("Bu funksiya tez kunda qo'shiladi"); }
+  // ===== Hisobot yuklab olish =====
+  async function yuklabOlish(turi) {
+    const start = document.getElementById('hisobot-start').value;
+    const end = document.getElementById('hisobot-end').value;
+
+    if (!start || !end) {
+      alert("Boshlanish va tugash sanasini kiriting");
+      return;
+    }
+
+    const url = turi === 'davomat' ? WEBHOOKS.reportAttendance : WEBHOOKS.reportLate;
+    const filename = turi === 'davomat' ? 'davomat-hisoboti.xlsx' : 'kechikish-hisoboti.xlsx';
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, start_date: start, end_date: end })
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.message || 'Xatolik yuz berdi');
+        return;
+      }
+
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    } catch (e) {
+      alert('Xatolik: ' + e.message);
+    }
+  }
 
   // ===== Login =====
   async function login() {
