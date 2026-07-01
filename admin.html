@@ -494,6 +494,10 @@
 
           <label>Kechikishga ruxsat etilgan vaqt (daqiqa)</label>
           <input type="number" id="settings-late-threshold" placeholder="10">
+
+          <label>Kechikish jarimasi (daqiqasiga, so'm)</label>
+          <input type="number" id="settings-late-penalty" placeholder="500">
+
           <button class="btn-primary" onclick="saveLateThreshold()">Saqlash</button>
 
           <div class="section-heading">Maosh va jarima</div>
@@ -528,7 +532,7 @@
   const WEBAPP_URL = 'xxx';
 
   // ===== Webhook manzillari - shu yerga haqiqiy URL'larni qo'ying =====
- const WEBHOOKS = {
+const WEBHOOKS = {
     login: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-login',
     search: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-search',
     toggle: 'https://n8n-production-9a12.up.railway.app/webhook/yafa-admin-toggle',
@@ -763,14 +767,16 @@
       const data = await res.json();
       if (data.status === 'ok') {
         document.getElementById('settings-late-threshold').value = data.late_threshold_min;
+        document.getElementById('settings-late-penalty').value = data.late_penalty_per_min || 0;
       }
     } catch (e) {}
   }
 
-  // ===== Kechikish chegarasini saqlash =====
+  // ===== Kechikish chegarasi va jarimani saqlash =====
   async function saveLateThreshold() {
-    const value = document.getElementById('settings-late-threshold').value;
-    if (!value) {
+    const threshold = document.getElementById('settings-late-threshold').value;
+    const penalty = document.getElementById('settings-late-penalty').value;
+    if (!threshold) {
       alert("Daqiqa qiymatini kiriting");
       return;
     }
@@ -778,11 +784,11 @@
       const res = await fetch(WEBHOOKS.saveSettings, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, late_threshold_min: value })
+        body: JSON.stringify({ token, late_threshold_min: threshold, late_penalty_per_min: penalty || 0 })
       });
       const data = await res.json();
       if (data.status === 'ok') {
-        alert("Saqlandi: " + data.late_threshold_min + " daqiqa");
+        alert("Saqlandi!");
       } else {
         alert(data.message || 'Xatolik yuz berdi');
       }
